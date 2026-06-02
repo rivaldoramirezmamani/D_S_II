@@ -1,0 +1,1174 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Santa Cruz Segura Predictiva - Análisis con IA</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="/js/supabase.js"></script>
+<style>
+  :root {
+    --verde: #1a6b2f;
+    --verde-medio: #2d8a47;
+    --verde-claro: #4caf50;
+    --verde-suave: #e8f5e9;
+    --naranja: #f5a623;
+    --rojo: #e53935;
+    --rojo-claro: #ffebee;
+    --gris-oscuro: #1c2b1e;
+    --gris: #4a5568;
+    --gris-medio: #718096;
+    --gris-claro: #f4f6f4;
+    --blanco: #ffffff;
+    --sombra: 0 2px 12px rgba(0,0,0,0.10);
+    --sombra-fuerte: 0 4px 24px rgba(0,0,0,0.15);
+    --text-primary: var(--gris-oscuro);
+    --bg-card: #ffffff;
+    --border-card: #e8f0e8;
+    --header-bg: #ffffff;
+    --header-border: #e2e8f0;
+    --sidebar-bg: #1c2b1e;
+    --sidebar-text: #ffffff;
+    --topbar-bg: #1c2b1e;
+    --topbar-text: #ffffff;
+    --input-bg: #ffffff;
+    --input-border: #d1dbd1;
+  }
+
+body.dark {
+    --verde: #4caf50;
+    --verde-medio: #66bb6a;
+    --verde-claro: #81c784;
+    --verde-suave: #1b3d1f;
+    --naranja: #ffb74d;
+    --rojo: #ef5350;
+    --rojo-claro: #3d1a1a;
+    --text-primary: #e8eaed;
+    --gris: #b0b3b8;
+    --gris-medio: #8a8d94;
+    --gris-claro: #1a1a2e;
+    --blanco: #c8cdd0;
+    --sombra: 0 2px 12px rgba(0,0,0,0.30);
+    --sombra-fuerte: 0 4px 24px rgba(0,0,0,0.40);
+    --bg-card: #1e2a3a;
+    --border-card: #2a3a4e;
+    --header-bg: #16213e;
+    --header-border: #2a3a4e;
+    --sidebar-bg: #0a0e1a;
+    --sidebar-text: #c8cdd0;
+    --topbar-bg: #0a0e1a;
+    --topbar-text: #c8cdd0;
+    --input-bg: #1a2535;
+    --input-border: #2a3a4e;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--gris-claro);
+    color: var(--text-primary);
+    min-height: 100vh;
+    transition: background 0.25s, color 0.25s;
+  }
+
+  .topbar {
+    background: var(--topbar-bg);
+    color: var(--topbar-text);
+    text-align: center;
+    font-size: 12px;
+    padding: 6px 20px;
+    letter-spacing: 0.3px;
+    transition: background 0.25s, color 0.25s;
+  }
+
+  .layout {
+    display: flex;
+    min-height: calc(100vh - 30px);
+  }
+
+  .sidebar {
+    width: 220px;
+    background: var(--sidebar-bg);
+    color: var(--sidebar-text);
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    flex-shrink: 0;
+    transition: background 0.25s, color 0.25s;
+  }
+
+  .sidebar-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 22px 20px 18px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+
+  .brand-icon {
+    width: 38px; height: 38px;
+    background: var(--verde);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  .brand-icon svg { width: 22px; height: 22px; fill: white; }
+
+  .brand-text { line-height: 1.2; }
+  .brand-text .t1 { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 13px; color: white; }
+  .brand-text .t2 { font-size: 10px; color: var(--verde-claro); font-weight: 500; }
+
+  .sidebar nav { padding: 12px 0; flex: 1; overflow-y: auto; }
+
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 20px;
+    font-size: 13px; font-weight: 500;
+    color: rgba(255,255,255,0.65);
+    cursor: pointer;
+    transition: all 0.18s;
+    border-left: 3px solid transparent;
+    text-decoration: none;
+  }
+  .nav-item:hover { color: white; background: rgba(255,255,255,0.06); }
+  .nav-item.active {
+    color: white;
+    border-left: 3px solid var(--verde-claro);
+    background: rgba(76,175,80,0.12);
+  }
+  .nav-item svg { width: 16px; height: 16px; flex-shrink: 0; }
+
+  .sidebar-footer {
+    padding: 16px 20px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    font-size: 11.5px;
+    color: rgba(255,255,255,0.45);
+  }
+
+  .main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .header {
+    background: var(--header-bg);
+    border-bottom: 1px solid var(--header-border);
+    padding: 14px 28px;
+    display: flex; align-items: center; justify-content: space-between;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+  }
+
+  .header-left h1 {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 18px; font-weight: 800;
+    color: var(--text-primary);
+  }
+  .header-left p { font-size: 12px; color: var(--gris-medio); margin-top: 1px; }
+
+  .header-right { display: flex; align-items: center; gap: 14px; }
+
+  .bell-btn {
+    width: 36px; height: 36px;
+    border: 1.5px solid var(--header-border);
+    border-radius: 8px;
+    background: var(--bg-card);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    position: relative;
+  }
+  .bell-btn svg { width: 18px; height: 18px; stroke: var(--gris); fill: none; }
+  .bell-dot {
+    width: 8px; height: 8px;
+    background: var(--rojo);
+    border-radius: 50%;
+    position: absolute; top: 5px; right: 5px;
+    border: 1.5px solid var(--bg-card);
+  }
+
+  .user-badge {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--verde-suave);
+    border: 1.5px solid var(--border-card);
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-size: 12px; font-weight: 600; color: var(--verde);
+  }
+  .user-avatar {
+    width: 26px; height: 26px;
+    background: var(--verde);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-size: 11px; font-weight: 700;
+  }
+
+  .content { padding: 24px 28px; flex: 1; overflow-y: auto; }
+
+  .section-title {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 14px; font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .stat-card {
+    background: white;
+    border-radius: 12px;
+    padding: 18px 20px;
+    box-shadow: var(--sombra);
+    border: 1px solid #e8f0e8;
+    position: relative;
+    overflow: hidden;
+  }
+  .stat-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0;
+    width: 4px; height: 100%;
+    background: var(--verde);
+  }
+  .stat-card.orange::before { background: var(--naranja); }
+  .stat-card.red::before { background: var(--rojo); }
+  .stat-card.purple::before { background: #7b1fa2; }
+
+  .stat-label { font-size: 11px; color: var(--gris-medio); font-weight: 500; text-transform: uppercase; letter-spacing: 0.4px; }
+  .stat-value { font-family: 'Montserrat', sans-serif; font-size: 28px; font-weight: 900; color: var(--text-primary); line-height: 1; margin-top: 4px; }
+  .stat-value.naranja { color: var(--naranja); }
+  .stat-value.rojo { color: var(--rojo); }
+  .stat-value.morado { color: #7b1fa2; }
+  .stat-sub { font-size: 11px; margin-top: 6px; color: var(--gris-medio); }
+
+  .row-2col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .card {
+    background: var(--bg-card);
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: var(--sombra);
+    border: 1px solid var(--border-card);
+  }
+  .card-title {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 13px; font-weight: 700; color: var(--text-primary);
+    margin-bottom: 14px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .card-title .badge {
+    background: var(--rojo-claro);
+    color: var(--rojo);
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 12px;
+  }
+
+  .prediccion-item {
+    padding: 12px 0;
+    border-bottom: 1px solid #f0f4f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .prediccion-item:last-child { border-bottom: none; }
+  .pred-barrio { font-weight: 600; font-size: 13px; }
+  .pred-riesgo { font-size: 11px; padding: 2px 10px; border-radius: 12px; font-weight: 700; }
+  .pred-riesgo.Alto { background: var(--rojo-claro); color: var(--rojo); }
+  .pred-riesgo.Medio { background: #fff3e0; color: #e65100; }
+  .pred-riesgo.Bajo { background: var(--verde-suave); color: var(--verde); }
+  .pred-prob { font-size: 12px; color: var(--gris-medio); }
+  .pred-factores { font-size: 11px; color: var(--gris); margin-top: 2px; }
+
+  .tipo-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    padding: 5px 0;
+  }
+  .tipo-bar-wrap { flex: 1; height: 7px; background: #f0f4f0; border-radius: 10px; overflow: hidden; }
+  .tipo-bar { height: 100%; border-radius: 10px; transition: width 0.5s; }
+  .tipo-label { min-width: 110px; color: var(--gris); font-size: 12px; }
+  .tipo-pct { min-width: 32px; text-align: right; font-weight: 600; color: var(--text-primary); font-size: 11px; }
+
+  .rec-card {
+    background: linear-gradient(135deg, #e8f5e9, #f1f8f1);
+    border-radius: 12px;
+    padding: 16px 18px;
+    margin-bottom: 10px;
+    border: 1px solid #c8e6c9;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  .rec-icon {
+    width: 28px; height: 28px;
+    background: var(--verde);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .rec-icon svg { width: 16px; height: 16px; stroke: white; fill: none; }
+  .rec-text { font-size: 13px; color: var(--text-primary); line-height: 1.4; }
+
+  .tendencia-chart {
+    display: flex;
+    align-items: flex-end;
+    gap: 2px;
+    height: 120px;
+    padding-top: 10px;
+  }
+  .barra-dia {
+    flex: 1;
+    background: var(--verde-claro);
+    border-radius: 3px 3px 0 0;
+    min-width: 8px;
+    transition: height 0.4s;
+    position: relative;
+  }
+  .barra-dia:hover { background: var(--verde); }
+  .barra-dia .tooltip {
+    display: none;
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--gris-oscuro);
+    color: white;
+    font-size: 10px;
+    padding: 3px 7px;
+    border-radius: 4px;
+    white-space: nowrap;
+    z-index: 10;
+  }
+  .barra-dia:hover .tooltip { display: block; }
+
+  .factor-card {
+    background: #fff8e1;
+    border: 1px solid #ffe082;
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin-bottom: 10px;
+  }
+  .factor-titulo { font-weight: 700; font-size: 13px; color: #e65100; }
+  .factor-desc { font-size: 12px; color: var(--gris); margin-top: 2px; }
+
+  .chat-fab {
+    position: fixed; bottom: 24px; right: 24px;
+    width: 56px; height: 56px;
+    background: var(--verde);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(26,107,47,0.4);
+    border: none;
+    z-index: 100;
+    transition: all 0.25s;
+  }
+  .chat-fab:hover { transform: scale(1.08); background: var(--verde-medio); }
+  .chat-fab svg { width: 26px; height: 26px; fill: white; }
+
+  .chat-panel {
+    position: fixed; bottom: 90px; right: 24px;
+    width: 380px; height: 520px;
+    background: var(--blanco);
+    border-radius: 16px;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.2);
+    border: 1px solid var(--border-card);
+    display: none;
+    flex-direction: column;
+    z-index: 100;
+    overflow: hidden;
+    transition: all 0.25s;
+  }
+  .chat-panel.open { display: flex; }
+
+  .chat-header {
+    background: var(--gris-oscuro);
+    color: white;
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+  }
+  .chat-header-icon {
+    width: 32px; height: 32px;
+    background: var(--verde);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .chat-header-icon svg { width: 18px; height: 18px; fill: white; }
+  .chat-header-titulo { font-weight: 700; font-size: 13px; }
+  .chat-header-sub { font-size: 10px; opacity: 0.65; }
+  .chat-close {
+    margin-left: auto;
+    background: none; border: none;
+    color: rgba(255,255,255,0.6);
+    cursor: pointer;
+    padding: 4px;
+  }
+  .chat-close svg { width: 18px; height: 18px; stroke: currentColor; fill: none; }
+
+  .chat-messages {
+    flex: 1; overflow-y: auto;
+    padding: 16px;
+    display: flex; flex-direction: column;
+    gap: 10px;
+    background: var(--gris-claro);
+  }
+
+  .msg {
+    max-width: 85%;
+    padding: 10px 14px;
+    border-radius: 12px;
+    font-size: 13px;
+    line-height: 1.45;
+    animation: msgIn 0.25s ease;
+  }
+  @keyframes msgIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+  .msg.user {
+    align-self: flex-end;
+    background: var(--verde);
+    color: white;
+    border-bottom-right-radius: 4px;
+  }
+  .msg.bot {
+    align-self: flex-start;
+    background: var(--bg-card);
+    color: var(--text-primary);
+    border: 1px solid var(--border-card);
+    border-bottom-left-radius: 4px;
+  }
+  .msg.bot strong { color: var(--verde); }
+  .msg.bot ul { margin: 6px 0; padding-left: 18px; }
+  .msg.bot li { margin-bottom: 3px; }
+
+  .typing {
+    align-self: flex-start;
+    display: flex; gap: 5px;
+    padding: 12px 18px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-card);
+    border-radius: 12px;
+    border-bottom-left-radius: 4px;
+  }
+  .typing span {
+    width: 8px; height: 8px;
+    background: var(--gris-medio);
+    border-radius: 50%;
+    animation: typingDot 1.4s infinite ease-in-out;
+  }
+  .typing span:nth-child(2) { animation-delay: 0.2s; }
+  .typing span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes typingDot { 0%,60%,100% { opacity: 0.3; transform: scale(0.8); } 30% { opacity: 1; transform: scale(1); } }
+
+  .chat-input-area {
+    display: flex;
+    gap: 8px;
+    padding: 12px 14px;
+    border-top: 1px solid var(--border-card);
+    background: var(--bg-card);
+    flex-shrink: 0;
+  }
+  .chat-input {
+    flex: 1;
+    padding: 10px 14px;
+    border: 1.5px solid var(--border-input);
+    border-radius: 10px;
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    background: var(--bg-input);
+    color: var(--text-primary);
+    outline: none;
+    transition: border 0.18s;
+  }
+  .chat-input:focus { border-color: var(--verde-claro); }
+
+  .chat-send {
+    width: 40px; height: 40px;
+    background: var(--verde);
+    border: none;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    transition: background 0.18s;
+    flex-shrink: 0;
+  }
+  .chat-send:hover { background: var(--verde-medio); }
+  .chat-send:disabled { opacity: 0.5; cursor: not-allowed; }
+  .chat-send svg { width: 18px; height: 18px; stroke: white; fill: none; }
+
+  .chat-badge {
+    position: absolute; top: -4px; right: -4px;
+    width: 20px; height: 20px;
+    background: var(--rojo);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-size: 10px; font-weight: 700;
+    border: 2px solid var(--blanco);
+  }
+
+  @media (max-width: 1100px) {
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .row-2col { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 700px) {
+    .sidebar { display: none; }
+    .stats-grid { grid-template-columns: 1fr 1fr; }
+    .chat-panel { width: calc(100vw - 32px); right: 16px; bottom: 82px; height: 460px; }
+  }
+</style>
+</head>
+<body>
+<script>try{document.body.classList.toggle('dark',localStorage.getItem('scsp_theme')==='dark')}catch(e){}</script>
+
+<div class="topbar">
+  Santa Cruz Segura Predictiva: plataforma web con IA para la anticipación colaborativa del delito en barrios
+</div>
+
+<div class="layout">
+
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 2L3 7v5c0 5.25 3.75 10.15 9 11.35C17.25 22.15 21 17.25 21 12V7L12 2z"/></svg>
+      </div>
+      <div class="brand-text">
+        <div class="t1">Santa Cruz<br>Segura Predictiva</div>
+        <div class="t2">Plataforma IA</div>
+      </div>
+    </div>
+    <nav id="sidebarNav"></nav>
+    <div class="sidebar-footer">
+      <strong style="color:rgba(255,255,255,0.7)">Junta Vecinal</strong><br>San Pedro
+    </div>
+  </aside>
+
+  <main class="main">
+
+    <div class="header">
+      <div class="header-left">
+        <h1>Análisis con IA</h1>
+        <p>Predicciones, tendencias y recomendaciones inteligentes</p>
+      </div>
+      <div class="header-right">
+        <div class="bell-btn" onclick="location.href='analisis.html'" style="cursor:pointer;">
+          <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <span class="bell-dot" id="notifDot" style="display:none;"></span>
+        </div>
+        <div class="user-badge" id="userBadge">
+          <div class="user-avatar" style="background:var(--verde);">...</div>
+          <span>Cargando...</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <div class="stats-grid" id="statsGrid">
+        <div class="stat-card orange">
+          <div class="stat-label">Nivel de riesgo general</div>
+          <div class="stat-value naranja" id="nivelRiesgo">--</div>
+          <div class="stat-sub">Probabilidad: <span id="probabilidad">--</span></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Total incidentes</div>
+          <div class="stat-value" id="totalIncidentes">--</div>
+          <div class="stat-sub">registrados en el sistema</div>
+        </div>
+        <div class="stat-card red">
+          <div class="stat-label">Incidentes recientes</div>
+          <div class="stat-value rojo" id="incidentesRecientes">--</div>
+          <div class="stat-sub">últimos 30 días</div>
+        </div>
+        <div class="stat-card purple">
+          <div class="stat-label">Predicciones activas</div>
+          <div class="stat-value morado" id="totalPredicciones">--</div>
+          <div class="stat-sub">barrios analizados</div>
+        </div>
+      </div>
+
+      <div class="row-2col">
+        <div class="card">
+          <div class="card-title">🧠 Factores de riesgo identificados</div>
+          <div id="factoresContainer">
+            <div style="color:var(--gris-medio);font-size:12px;">Cargando...</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">💡 Recomendaciones IA</div>
+          <div id="recomendacionesContainer">
+            <div style="color:var(--gris-medio);font-size:12px;">Cargando...</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row-2col">
+        <div class="card">
+          <div class="card-title">📊 Distribución por tipo</div>
+          <div id="tiposContainer">
+            <div style="color:var(--gris-medio);font-size:12px;">Cargando...</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">📈 Tendencia diaria (30 días)</div>
+          <div class="tendencia-chart" id="tendenciaChart"></div>
+          <div style="font-size:10px;color:var(--gris-medio);text-align:center;margin-top:6px;">Incidentes por día</div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom:24px;">
+        <div class="card-title">🏘️ Predicciones de riesgo por barrio</div>
+        <div id="prediccionesContainer">
+          <div style="color:var(--gris-medio);font-size:12px;">Cargando...</div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+</div>
+
+<!-- CHIP SUGERENCIAS -->
+<style>
+  .chat-sugerencias {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 0 16px 10px;
+    background: var(--gris-claro);
+  }
+  .chip {
+    background: white;
+    border: 1.5px solid #c8e6c9;
+    color: var(--verde);
+    font-size: 11px;
+    font-weight: 600;
+    padding: 5px 11px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.18s;
+    white-space: nowrap;
+    font-family: 'Inter', sans-serif;
+  }
+  .chip:hover { background: var(--verde); color: white; border-color: var(--verde); }
+
+  .msg.bot { background: white; }
+  .msg.streaming { background: white; }
+  .msg.error-msg { background: #fff3f3; border-color: #ffc1c1; color: #c0392b; }
+
+  .chat-status-bar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 18px 0;
+    font-size: 10px;
+    color: var(--gris-medio);
+    background: var(--gris-claro);
+  }
+  .status-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--verde-claro);
+    animation: pulse-dot 2s infinite;
+  }
+  @keyframes pulse-dot { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+  .chat-panel { border: 1px solid #e0ebe0; }
+  .chat-clear-btn {
+    margin-left: auto;
+    background: none; border: 1px solid rgba(255,255,255,0.2);
+    color: rgba(255,255,255,0.65);
+    font-size: 10px; font-family: 'Inter', sans-serif;
+    padding: 3px 9px; border-radius: 6px;
+    cursor: pointer; transition: all 0.18s;
+  }
+  .chat-clear-btn:hover { background: rgba(255,255,255,0.1); color: white; }
+</style>
+
+<button class="chat-fab" id="chatFab" onclick="toggleChat()" title="Chat IA">
+  <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+  <span class="chat-badge" id="chatBadge">IA</span>
+</button>
+
+<div class="chat-panel" id="chatPanel">
+  <div class="chat-header">
+    <div class="chat-header-icon">
+      <svg viewBox="0 0 24 24"><path d="M12 2L3 7v5c0 5.25 3.75 10.15 9 11.35C17.25 22.15 21 17.25 21 12V7L12 2z"/></svg>
+    </div>
+    <div>
+      <div class="chat-header-titulo">Asistente IA</div>
+      <div class="chat-header-sub">Santa Cruz Segura Predictiva</div>
+    </div>
+    <button class="chat-clear-btn" onclick="limpiarChat()" title="Nueva conversación">✦ Nueva</button>
+    <button class="chat-close" onclick="toggleChat()">
+      <svg viewBox="0 0 24 24"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg>
+    </button>
+  </div>
+
+  <div class="chat-status-bar">
+    <span class="status-dot"></span>
+    <span id="statusText">Conectado · Claude IA activo</span>
+  </div>
+
+  <div class="chat-messages" id="chatMessages">
+    <div class="msg bot">
+      ¡Hola! Soy tu asistente de seguridad de <strong>Santa Cruz Segura Predictiva</strong> 👋<br><br>
+      Pregúntame <strong>lo que quieras</strong>, por ejemplo:<br>
+      <ul>
+        <li>¿Qué zonas debo evitar?</li>
+        <li>¿Cuándo ocurren más incidentes?</li>
+        <li>¿Es seguro salir de noche?</li>
+        <li>¿Qué barrios tienen más riesgo?</li>
+        <li>Dame un resumen de la situación actual</li>
+      </ul>
+      ¿En qué puedo ayudarte hoy?
+    </div>
+  </div>
+
+  <div class="chat-sugerencias" id="chipsSugerencias">
+    <button class="chip" onclick="usarChip(this)">¿Qué zonas debo evitar?</button>
+    <button class="chip" onclick="usarChip(this)">¿Cuándo ocurren más incidentes?</button>
+    <button class="chip" onclick="usarChip(this)">¿Es seguro salir de noche?</button>
+    <button class="chip" onclick="usarChip(this)">¿Qué recomienda la IA?</button>
+    <button class="chip" onclick="usarChip(this)">Dame un resumen de seguridad</button>
+  </div>
+
+  <div class="chat-input-area">
+    <input class="chat-input" id="chatInput" placeholder="Escribe tu pregunta..." onkeydown="if(event.key==='Enter'&&!isStreaming) enviarPregunta()">
+    <button class="chat-send" id="chatSend" onclick="enviarPregunta()">
+      <svg viewBox="0 0 24 24"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4z"/></svg>
+    </button>
+  </div>
+</div>
+
+<script>
+  let chatOpen = false
+  let historial = []
+  let isStreaming = false
+  let datosPlataforma = null
+
+  // ─── Configuración API ───────────────────────────────────────────────────
+  // Opción 1: Define tu API key aquí directamente (solo para desarrollo local)
+  // Opción 2: El backend /api/chat maneja la autenticación (producción recomendada)
+  // Opción 3: La página detecta automáticamente si usa proxy del servidor
+
+  const MODO_API = 'backend'
+  const GROQ_API_KEY = ''
+
+  // ─── Recolectar datos visibles de la página ───────────────────────────────
+  function obtenerContextoPagina() {
+    const ctx = {}
+    try {
+      ctx.nivelRiesgo      = document.getElementById('nivelRiesgo')?.textContent?.trim()
+      ctx.probabilidad     = document.getElementById('probabilidad')?.textContent?.trim()
+      ctx.totalIncidentes  = document.getElementById('totalIncidentes')?.textContent?.trim()
+      ctx.incidentesRecientes = document.getElementById('incidentesRecientes')?.textContent?.trim()
+      ctx.totalPredicciones   = document.getElementById('totalPredicciones')?.textContent?.trim()
+
+      // Predicciones por barrio
+      const predsEl = document.getElementById('prediccionesContainer')
+      if (predsEl) {
+        const items = predsEl.querySelectorAll('.prediccion-item')
+        ctx.predicciones = Array.from(items).map(el => ({
+          barrio: el.querySelector('.pred-barrio')?.textContent?.trim(),
+          riesgo: el.querySelector('.pred-riesgo')?.textContent?.trim(),
+          prob:   el.querySelector('.pred-prob')?.textContent?.trim(),
+          factores: el.querySelector('.pred-factores')?.textContent?.trim()
+        })).filter(p => p.barrio)
+      }
+
+      // Distribución de tipos
+      const tiposEl = document.getElementById('tiposContainer')
+      if (tiposEl) {
+        ctx.distribucionTipos = Array.from(tiposEl.querySelectorAll('.tipo-item')).map(el => ({
+          nombre: el.querySelector('.tipo-label')?.textContent?.trim(),
+          pct:    el.querySelector('.tipo-pct')?.textContent?.trim()
+        })).filter(t => t.nombre)
+      }
+
+      // Factores de riesgo
+      const factoresEl = document.getElementById('factoresContainer')
+      if (factoresEl) {
+        ctx.factoresRiesgo = Array.from(factoresEl.querySelectorAll('.factor-desc')).map(el => el.textContent?.trim()).filter(Boolean)
+      }
+
+      // Recomendaciones
+      const recsEl = document.getElementById('recomendacionesContainer')
+      if (recsEl) {
+        ctx.recomendaciones = Array.from(recsEl.querySelectorAll('.rec-text')).map(el => el.textContent?.trim()).filter(Boolean)
+      }
+    } catch(e) {}
+    return ctx
+  }
+
+  function buildSystemPrompt(ctx) {
+    let datosStr = ''
+    if (ctx.nivelRiesgo && ctx.nivelRiesgo !== '--') {
+      datosStr += `\n- Nivel de riesgo general: ${ctx.nivelRiesgo} (probabilidad: ${ctx.probabilidad})`
+      datosStr += `\n- Total incidentes registrados: ${ctx.totalIncidentes}`
+      datosStr += `\n- Incidentes últimos 30 días: ${ctx.incidentesRecientes}`
+      datosStr += `\n- Predicciones activas (barrios analizados): ${ctx.totalPredicciones}`
+    }
+    if (ctx.predicciones?.length) {
+      datosStr += `\n- Predicciones por barrio:\n` + ctx.predicciones.map(p =>
+        `  • ${p.barrio}: riesgo ${p.riesgo}, ${p.prob}${p.factores ? ', factores: '+p.factores : ''}`
+      ).join('\n')
+    }
+    if (ctx.distribucionTipos?.length) {
+      datosStr += `\n- Distribución de tipos de incidentes:\n` + ctx.distribucionTipos.map(t => `  • ${t.nombre}: ${t.pct}`).join('\n')
+    }
+    if (ctx.factoresRiesgo?.length) {
+      datosStr += `\n- Factores de riesgo identificados:\n` + ctx.factoresRiesgo.map(f => `  • ${f}`).join('\n')
+    }
+    if (ctx.recomendaciones?.length) {
+      datosStr += `\n- Recomendaciones activas del sistema:\n` + ctx.recomendaciones.map(r => `  • ${r}`).join('\n')
+    }
+
+    const tieneDatos = datosStr.trim().length > 0
+
+    return `Eres el asistente inteligente de "Santa Cruz Segura Predictiva", plataforma de seguridad ciudadana para Santa Cruz de la Sierra, Bolivia. Ayudas a vecinos, juntas vecinales y administradores a entender la seguridad de su ciudad.
+
+DATOS ACTUALES DE LA PLATAFORMA:${tieneDatos ? datosStr : '\n(Sin datos cargados aún en esta sesión)'}
+
+INSTRUCCIONES CRÍTICAS:
+1. SIEMPRE responde de forma útil y directa. NUNCA digas "no entendí" ni pidas reformular.
+2. Si el usuario pregunta algo genérico como "¿qué zonas debo evitar?" o "¿cuándo ocurren más incidentes?", usa los datos disponibles. Si no hay datos, da una respuesta general útil sobre seguridad en Santa Cruz.
+3. Interpreta preguntas naturales con inteligencia:
+   - "¿qué zonas evitar?" → habla de los barrios con mayor riesgo según datos, o consejos generales si no hay datos
+   - "¿cuándo ocurren más incidentes?" → analiza tendencias horarias/diarias si hay datos, o da consejos generales
+   - "¿es seguro salir de noche?" → responde con datos de horarios si existen, o recomendaciones generales
+   - "resumen" o "qué está pasando" → resume todo lo que sabes de la plataforma
+   - "recomendaciones" → da las recomendaciones del sistema o consejos prácticos de seguridad
+4. Formato: usa **negritas** para lo importante, listas con • para múltiples ítems. Respuestas concisas (máximo 5-6 líneas salvo que pidan detalle).
+5. Tono: profesional pero cercano, como un analista de seguridad que habla con un vecino.
+6. Si preguntan sobre algo completamente ajeno a seguridad, redirecciona amablemente al tema de la plataforma.
+
+Ejemplos de respuestas correctas:
+- "¿Qué zonas debo evitar?" → "Según los datos actuales, los barrios con mayor riesgo son: [lista]. Te recomiendo evitarlos especialmente en horario nocturno."
+- "¿Cuándo ocurren más incidentes?" → "La tendencia muestra mayor actividad delictiva los [días/horarios]. Los tipos más frecuentes son [tipos]."
+- Sin datos: "Actualmente no tengo datos cargados, pero en general las zonas periféricas del Plan 3000 y Villa 1ro de Mayo históricamente tienen mayor incidencia. ¿Quieres que analice un barrio específico?"
+
+Responde siempre en español.`
+  }
+
+  // ─── Toggle chat ──────────────────────────────────────────────────────────
+  function toggleChat() {
+    chatOpen = !chatOpen
+    document.getElementById('chatPanel').classList.toggle('open', chatOpen)
+    if (chatOpen) {
+      document.getElementById('chatInput').focus()
+      document.getElementById('chatBadge').style.display = 'none'
+    }
+  }
+
+  function limpiarChat() {
+    historial = []
+    const container = document.getElementById('chatMessages')
+    container.innerHTML = `<div class="msg bot">
+      Conversación reiniciada. ¿En qué puedo ayudarte con los datos de seguridad de Santa Cruz?
+    </div>`
+    document.getElementById('chipsSugerencias').style.display = 'flex'
+  }
+
+  function usarChip(btn) {
+    document.getElementById('chatInput').value = btn.textContent
+    document.getElementById('chipsSugerencias').style.display = 'none'
+    enviarPregunta()
+  }
+
+  // ─── Agregar mensaje ──────────────────────────────────────────────────────
+  function agregarMsg(texto, tipo) {
+    const container = document.getElementById('chatMessages')
+    const div = document.createElement('div')
+    div.className = `msg ${tipo}`
+    div.innerHTML = formatearRespuesta(texto)
+    container.appendChild(div)
+    container.scrollTop = container.scrollHeight
+    return div
+  }
+
+  function formatearRespuesta(texto) {
+    return texto
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.*?)\*/g, '<em>$1</em>')
+      .replace(/^• (.+)$/gm, '<li>$1</li>')
+      .replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>')
+      .replace(/\n\n/g, '<br><br>')
+      .replace(/\n/g, '<br>')
+  }
+
+  function mostrarTyping() {
+    const container = document.getElementById('chatMessages')
+    const div = document.createElement('div')
+    div.className = 'typing'
+    div.id = 'typingIndicator'
+    div.innerHTML = '<span></span><span></span><span></span>'
+    container.appendChild(div)
+    container.scrollTop = container.scrollHeight
+  }
+
+  function quitarTyping() {
+    const el = document.getElementById('typingIndicator')
+    if (el) el.remove()
+  }
+
+  function setStatus(texto, activo = true) {
+    document.getElementById('statusText').textContent = texto
+    document.querySelector('.status-dot').style.background = activo ? 'var(--verde-claro)' : '#f5a623'
+  }
+
+  // ─── Enviar pregunta a Claude API con streaming ───────────────────────────
+  async function enviarPregunta() {
+    if (isStreaming) return
+    const input = document.getElementById('chatInput')
+    const texto = input.value.trim()
+    if (!texto) return
+
+    input.value = ''
+    document.getElementById('chatSend').disabled = true
+    document.getElementById('chipsSugerencias').style.display = 'none'
+    isStreaming = true
+
+    agregarMsg(texto, 'user')
+    historial.push({ role: 'user', content: texto })
+    mostrarTyping()
+    setStatus('Analizando datos...', true)
+
+    try {
+      let fullText = ''
+      const container = document.getElementById('chatMessages')
+
+      if (MODO_API === 'backend') {
+        // ── Modo backend: el servidor maneja la API key ──
+        const ctx = obtenerContextoPagina()
+        const systemPrompt = buildSystemPrompt(ctx)
+
+        const session = await _supabaseClient.auth.getSession()
+        const accessToken = session?.data?.session?.access_token
+        const headers = { 'Content-Type': 'application/json' }
+        if (accessToken) headers['Authorization'] = `Bearer ${accessToken}`
+
+        const response = await fetch('/api/analisis/chat', {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({
+            pregunta: texto,
+            historial: historial.slice(-10),
+            contexto: ctx,
+            system: systemPrompt
+          })
+        })
+
+        if (!response.ok) throw new Error(`HTTP ${response.status}`)
+        const data = await response.json()
+        quitarTyping()
+
+        if (data.ok && data.respuesta) {
+          fullText = data.respuesta
+          const botDiv = agregarMsg(fullText, 'bot')
+          historial.push({ role: 'assistant', content: fullText })
+        } else {
+          throw new Error(data.error || 'Sin respuesta')
+        }
+
+        setStatus('Conectado · Groq IA activo', true)
+        if (historial.length <= 4) mostrarChipsSiguientes(fullText)
+
+      } else {
+        // ── Modo directo: Groq API (GRATIS) ──
+        if (!GROQ_API_KEY || GROQ_API_KEY === 'TU_API_KEY_GROQ_AQUI') throw new Error('NO_API_KEY')
+
+        const ctx = obtenerContextoPagina()
+        const systemPrompt = buildSystemPrompt(ctx)
+
+        const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${GROQ_API_KEY}`
+          },
+          body: JSON.stringify({
+            model: 'llama-3.3-70b-versatile',
+            max_tokens: 1000,
+            messages: [
+              { role: 'system', content: systemPrompt },
+              ...historial
+            ]
+          })
+        })
+
+        if (!response.ok) {
+          const err = await response.json().catch(() => ({}))
+          throw new Error(`Error API Groq: ${response.status} - ${err?.error?.message || ''}`)
+        }
+
+        const data = await response.json()
+        quitarTyping()
+        fullText = data.choices?.[0]?.message?.content || 'Sin respuesta.'
+        const botDiv = agregarMsg(fullText, 'bot')
+        historial.push({ role: 'assistant', content: fullText })
+        setStatus('Conectado · Groq IA activo', true)
+        if (historial.length <= 4) mostrarChipsSiguientes(fullText)
+      }
+
+    } catch (e) {
+      quitarTyping()
+      let mensajeError = '⚠️ Error al conectar con la IA. Intenta nuevamente.'
+      if (e.message === 'NO_API_KEY') {
+        mensajeError = '⚙️ <strong>Falta la API Key de Groq (gratis):</strong><br>1. Ve a <strong>console.groq.com</strong><br>2. Crea cuenta gratis (sin tarjeta)<br>3. Ve a "API Keys" y crea una<br>4. Pégala en el código donde dice <code>TU_API_KEY_GROQ_AQUI</code>'
+      } else if (e.message?.includes('401')) {
+        mensajeError = '🔑 API key de Groq inválida. Verifica la clave en console.groq.com'
+      } else if (e.message?.includes('429')) {
+        mensajeError = '⏳ Límite de Groq alcanzado, espera unos segundos e intenta de nuevo.'
+      } else if (!navigator.onLine) {
+        mensajeError = '📡 Sin conexión a internet.'
+      } else if (e.message?.includes('Failed to fetch') || e.message?.includes('NetworkError')) {
+        mensajeError = '🔌 Error de red. Si el chat usa el servidor, verifica que esté corriendo en <code>/api/chat</code>.'
+      }
+      agregarMsg(mensajeError, 'bot error-msg')
+      setStatus('Error · Reintentar', false)
+    }
+
+    isStreaming = false
+    document.getElementById('chatSend').disabled = false
+    input.focus()
+  }
+
+  // ─── Chips dinámicos según contexto de respuesta ─────────────────────────
+  function mostrarChipsSiguientes(respuesta) {
+    const chips = document.getElementById('chipsSugerencias')
+    const sugs = []
+
+    if (respuesta.toLowerCase().includes('barrio') || respuesta.toLowerCase().includes('riesgo')) {
+      sugs.push('¿Qué zonas debo evitar?')
+    }
+    if (respuesta.toLowerCase().includes('incidente') || respuesta.toLowerCase().includes('robo')) {
+      sugs.push('¿Cuándo ocurren más incidentes?')
+    }
+    if (respuesta.toLowerCase().includes('recomend') || respuesta.toLowerCase().includes('patrol')) {
+      sugs.push('¿Cómo reportar un incidente?')
+    }
+    sugs.push('Dame un resumen ejecutivo')
+
+    chips.innerHTML = sugs.slice(0, 4).map(s =>
+      `<button class="chip" onclick="usarChip(this)">${s}</button>`
+    ).join('')
+    chips.style.display = 'flex'
+  }
+
+  // ─── CSS cursor parpadeante ───────────────────────────────────────────────
+  const blinkStyle = document.createElement('style')
+  blinkStyle.textContent = `@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }`
+  document.head.appendChild(blinkStyle)
+async function cargarAnalisis() {
+    try {
+      const res = await apiFetch('/api/analisis')
+      const data = await res.json()
+
+      document.getElementById('nivelRiesgo').textContent = data.nivel_riesgo_general || 'Medio'
+      document.getElementById('probabilidad').textContent = (data.probabilidad_general || 0) + '%'
+      document.getElementById('totalIncidentes').textContent = data.total_incidentes || 0
+      document.getElementById('incidentesRecientes').textContent = data.incidentes_recientes || 0
+      document.getElementById('totalPredicciones').textContent = (data.predicciones || []).length
+
+      const colores = { Robo: '#e53935', Violencia: '#ab47bc', Vandalismo: '#f5a623', Sospechoso: '#42a5f5', Hurto: '#ff7043', Otros: '#78909c' }
+      const tipos = data.distribucion_tipos || []
+      const totalTipo = tipos.reduce((s, t) => s + t.count, 0)
+      document.getElementById('tiposContainer').innerHTML = tipos.length
+        ? tipos.map(t => {
+            const pct = totalTipo > 0 ? Math.round((t.count / totalTipo) * 100) : 0
+            return `<div class="tipo-item">
+              <span class="tipo-label">${t.nombre}</span>
+              <div class="tipo-bar-wrap"><div class="tipo-bar" style="width:${pct}%;background:${colores[t.nombre] || '#78909c'};"></div></div>
+              <span class="tipo-pct">${pct}%</span>
+            </div>`
+          }).join('')
+        : '<div style="color:var(--gris-medio);font-size:12px;">Sin datos</div>'
+
+      const tendencia = data.tendencia_diaria || []
+      const chart = document.getElementById('tendenciaChart')
+      if (tendencia.length > 0) {
+        const maxVal = Math.max(...tendencia.map(t => t.count), 1)
+        chart.innerHTML = tendencia.map(t => {
+          const h = Math.max(4, (t.count / maxVal) * 110)
+          const date = new Date(t.fecha)
+          const label = date.toLocaleDateString('es-BO', { day: '2-digit', month: '2-digit' })
+          return `<div class="barra-dia" style="height:${h}px">
+            <div class="tooltip">${label}: ${t.count} incidentes</div>
+          </div>`
+        }).join('')
+      } else {
+        chart.innerHTML = '<div style="color:var(--gris-medio);font-size:12px;width:100%;text-align:center;">Sin datos de tendencia</div>'
+      }
+
+      const predicciones = data.predicciones || []
+      document.getElementById('prediccionesContainer').innerHTML = predicciones.length
+        ? predicciones.map(p => `
+          <div class="prediccion-item">
+            <div>
+              <div class="pred-barrio">${p.barrio?.nombre || 'Barrio'}</div>
+              <div class="pred-factores">${p.factores_riesgo || ''}</div>
+              <div class="pred-prob">Probabilidad: ${p.probabilidad || 0}% · ${p.fecha_generacion ? new Date(p.fecha_generacion).toLocaleDateString('es-BO') : ''}</div>
+            </div>
+            <div>
+              <span class="pred-riesgo ${p.nivel_riesgo || 'Medio'}">${p.nivel_riesgo || 'Medio'}</span>
+            </div>
+          </div>
+        `).join('')
+        : '<div style="color:var(--gris-medio);font-size:12px;">Sin predicciones disponibles</div>'
+
+      const factores = data.factores_riesgo
+      document.getElementById('factoresContainer').innerHTML = factores
+        ? factores.split(',').map(f => `<div class="factor-card"><div class="factor-titulo">⚠️ Factor detectado</div><div class="factor-desc">${f.trim()}</div></div>`).join('')
+        : '<div style="color:var(--gris-medio);font-size:12px;">Sin factores de riesgo destacados</div>'
+
+      const recs = data.recomendaciones || []
+      document.getElementById('recomendacionesContainer').innerHTML = recs.length
+        ? recs.map(r => `
+          <div class="rec-card">
+            <div class="rec-icon">
+              <svg viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" stroke="white" stroke-width="2"/></svg>
+            </div>
+            <div class="rec-text">${r}</div>
+          </div>
+        `).join('')
+        : '<div style="color:var(--gris-medio);font-size:12px;">Sin recomendaciones</div>'
+
+    } catch (e) {
+      console.error('Error al cargar análisis:', e)
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', cargarAnalisis)
+</script>
+<script src="js/auth.js"></script>
+<script>
+  verificarSesion().then(async function(session) {
+    if (session) {
+      verificarAcceso()
+      generarSidebar()
+      await new Promise(r => setTimeout(r, 300))
+      actualizarHeaderUsuario()
+    } else {
+      window.location.href = 'login.html'
+    }
+  })
+</script>
+</body>
+</html>

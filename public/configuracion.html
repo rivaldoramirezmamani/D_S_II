@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Santa Cruz Segura Predictiva - Configuración</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="/js/supabase.js"></script>
+<style>
+  :root {
+    --verde: #1a6b2f;
+    --verde-medio: #2d8a47;
+    --verde-claro: #4caf50;
+    --verde-suave: #e8f5e9;
+    --naranja: #f5a623;
+    --rojo: #e53935;
+    --rojo-claro: #ffebee;
+    --gris-oscuro: #1c2b1e;
+    --gris: #4a5568;
+    --gris-medio: #718096;
+    --gris-claro: #f4f6f4;
+    --blanco: #ffffff;
+    --sombra: 0 2px 12px rgba(0,0,0,0.10);
+    --sombra-fuerte: 0 4px 24px rgba(0,0,0,0.15);
+    --bg-card: #ffffff;
+    --border-card: #e8f0e8;
+    --bg-input: #f9fbf9;
+    --border-input: #d1dbd1;
+    --header-bg: #ffffff;
+    --header-border: #e2e8f0;
+    --topbar-bg: #1c2b1e;
+    --nav-text: rgba(255,255,255,0.65);
+    --nav-text-hover: #ffffff;
+    --nav-text-active: #ffffff;
+    --sidebar-footer-text: rgba(255,255,255,0.45);
+    --topbar-text: #ffffff;
+  }
+
+  body.dark {
+    --verde: #4caf50;
+    --verde-medio: #66bb6a;
+    --verde-claro: #81c784;
+    --verde-suave: #1b3d1f;
+    --naranja: #ffb74d;
+    --rojo: #ef5350;
+    --rojo-claro: #3d1a1a;
+    --gris-oscuro: #e8eaed;
+    --gris: #b0b3b8;
+    --gris-medio: #8a8d94;
+    --gris-claro: #1a1a2e;
+    --blanco: #c8cdd0;
+    --sombra: 0 2px 12px rgba(0,0,0,0.30);
+    --sombra-fuerte: 0 4px 24px rgba(0,0,0,0.40);
+    --bg-card: #1e2a3a;
+    --border-card: #2a3a4e;
+    --bg-input: #1a2535;
+    --border-input: #2a3a4e;
+    --header-bg: #16213e;
+    --header-border: #2a3a4e;
+    --topbar-bg: #0a0e1a;
+    --nav-text: rgba(200,205,210,0.7);
+    --nav-text-hover: #ffffff;
+    --nav-text-active: #ffffff;
+    --sidebar-footer-text: rgba(200,205,210,0.5);
+    --topbar-text: #c8cdd0;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--gris-claro);
+    color: var(--gris-oscuro);
+    min-height: 100vh;
+    transition: background 0.25s, color 0.25s;
+  }
+
+  .topbar {
+    background: var(--topbar-bg);
+    color: var(--topbar-text);
+    text-align: center;
+    font-size: 12px;
+    padding: 6px 20px;
+    letter-spacing: 0.3px;
+    transition: background 0.25s, color 0.25s;
+  }
+
+  .layout {
+    display: flex;
+    min-height: calc(100vh - 30px);
+  }
+
+  .sidebar {
+    width: 220px;
+    background: var(--topbar-bg);
+    color: var(--blanco);
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    flex-shrink: 0;
+    transition: background 0.25s;
+  }
+
+  .sidebar-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 22px 20px 18px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+
+  .brand-icon {
+    width: 38px; height: 38px;
+    background: var(--verde);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  .brand-icon svg { width: 22px; height: 22px; fill: white; }
+
+  .brand-text { line-height: 1.2; }
+  .brand-text .t1 { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 13px; color: white; }
+  .brand-text .t2 { font-size: 10px; color: var(--verde-claro); font-weight: 500; }
+
+  .sidebar nav { padding: 12px 0; flex: 1; overflow-y: auto; }
+
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 20px;
+    font-size: 13px; font-weight: 500;
+    color: var(--nav-text);
+    cursor: pointer;
+    transition: all 0.18s;
+    border-left: 3px solid transparent;
+    text-decoration: none;
+  }
+  .nav-item:hover { color: var(--nav-text-hover); background: rgba(255,255,255,0.06); }
+  .nav-item.active {
+    color: var(--nav-text-active);
+    border-left: 3px solid var(--verde-claro);
+    background: rgba(76,175,80,0.12);
+  }
+  .nav-item svg { width: 16px; height: 16px; flex-shrink: 0; }
+
+  .sidebar-footer {
+    padding: 16px 20px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    font-size: 11.5px;
+    color: var(--sidebar-footer-text);
+  }
+
+  .main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .header {
+    background: var(--header-bg);
+    border-bottom: 1px solid var(--header-border);
+    padding: 14px 28px;
+    display: flex; align-items: center; justify-content: space-between;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+    transition: background 0.25s, border-color 0.25s;
+  }
+
+  .header-left h1 {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 18px; font-weight: 800;
+    color: var(--gris-oscuro);
+  }
+  .header-left p { font-size: 12px; color: var(--gris-medio); margin-top: 1px; }
+
+  .header-right { display: flex; align-items: center; gap: 14px; }
+
+  .bell-btn {
+    width: 36px; height: 36px;
+    border: 1.5px solid var(--header-border);
+    border-radius: 8px;
+    background: var(--bg-card);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    position: relative;
+  }
+  .bell-btn svg { width: 18px; height: 18px; stroke: var(--gris); fill: none; }
+
+  .user-badge {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--verde-suave);
+    border: 1.5px solid var(--border-card);
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-size: 12px; font-weight: 600; color: var(--verde);
+  }
+  .user-avatar {
+    width: 26px; height: 26px;
+    background: var(--verde);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-size: 11px; font-weight: 700;
+  }
+
+  .content { padding: 24px 28px; flex: 1; overflow-y: auto; }
+
+  .section-title {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 14px; font-weight: 700;
+    color: var(--gris-oscuro);
+    margin-bottom: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .config-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .card {
+    background: var(--bg-card);
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: var(--sombra);
+    border: 1px solid var(--border-card);
+    transition: background 0.25s, border-color 0.25s;
+  }
+  .card-title {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 13px; font-weight: 700;
+    color: var(--gris-oscuro);
+    margin-bottom: 14px;
+    display: flex; align-items: center; gap: 8px;
+  }
+
+  .config-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border-card);
+  }
+  .config-row:last-child { border-bottom: none; }
+
+  .config-label { font-size: 13px; font-weight: 500; color: var(--gris-oscuro); }
+  .config-desc { font-size: 11px; color: var(--gris-medio); margin-top: 1px; }
+  .config-value { font-size: 12px; color: var(--gris); }
+
+  .toggle-wrap {
+    position: relative;
+    width: 44px; height: 24px;
+    flex-shrink: 0;
+  }
+  .toggle-wrap input {
+    opacity: 0; width: 0; height: 0;
+  }
+  .toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    inset: 0;
+    background: #ccc;
+    border-radius: 24px;
+    transition: 0.25s;
+  }
+  .toggle-slider:before {
+    content: '';
+    position: absolute;
+    height: 18px; width: 18px;
+    left: 3px; bottom: 3px;
+    background: white;
+    border-radius: 50%;
+    transition: 0.25s;
+  }
+  .toggle-wrap input:checked + .toggle-slider {
+    background: var(--verde);
+  }
+  .toggle-wrap input:checked + .toggle-slider:before {
+    transform: translateX(20px);
+  }
+
+  .profile-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+  .profile-avatar {
+    width: 56px; height: 56px;
+    background: var(--verde);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-size: 24px; font-weight: 700;
+    flex-shrink: 0;
+  }
+  .profile-name { font-weight: 700; font-size: 16px; color: var(--gris-oscuro); }
+  .profile-email { font-size: 12px; color: var(--gris-medio); }
+  .profile-rol { font-size: 11px; color: var(--verde); font-weight: 600; margin-top: 2px; }
+
+  .info-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    font-size: 13px;
+    border-bottom: 1px solid var(--border-card);
+  }
+  .info-row:last-child { border-bottom: none; }
+  .info-label { color: var(--gris-medio); }
+  .info-value { color: var(--gris-oscuro); font-weight: 500; }
+
+  .btn-danger {
+    padding: 10px 20px;
+    background: var(--rojo-claro);
+    color: var(--rojo);
+    border: 1.5px solid var(--rojo);
+    border-radius: 7px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 12px; font-weight: 700;
+    cursor: pointer;
+    transition: all 0.18s;
+  }
+  .btn-danger:hover { background: var(--rojo); color: white; }
+
+  .theme-selector {
+    display: flex; gap: 10px;
+  }
+  .theme-option {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    border: 3px solid transparent;
+    cursor: pointer;
+    transition: all 0.18s;
+  }
+  .theme-option.active { border-color: var(--verde); transform: scale(1.15); }
+  .theme-option.claro { background: #f4f6f4; border-color: #d1dbd1; }
+  .theme-option.oscuro { background: #1a1a2e; border-color: #2a3a4e; }
+
+  .save-msg {
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-size: 12px;
+    margin-top: 10px;
+    display: none;
+  }
+  .save-msg.success { display: block; background: var(--verde-suave); color: var(--verde); border: 1px solid var(--border-card); }
+
+  @media (max-width: 900px) {
+    .config-grid { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 700px) {
+    .sidebar { display: none; }
+  }
+</style>
+</head>
+<body>
+<script>try{document.body.classList.toggle('dark',localStorage.getItem('scsp_theme')==='dark')}catch(e){}</script>
+
+<div class="topbar">
+  Santa Cruz Segura Predictiva: plataforma web con IA para la anticipación colaborativa del delito en barrios
+</div>
+
+<div class="layout">
+
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 2L3 7v5c0 5.25 3.75 10.15 9 11.35C17.25 22.15 21 17.25 21 12V7L12 2z"/></svg>
+      </div>
+      <div class="brand-text">
+        <div class="t1">Santa Cruz<br>Segura Predictiva</div>
+        <div class="t2">Plataforma IA</div>
+      </div>
+    </div>
+    <nav id="sidebarNav"></nav>
+    <div class="sidebar-footer">
+      <strong style="color:rgba(255,255,255,0.7)">Junta Vecinal</strong><br>San Pedro
+    </div>
+  </aside>
+
+  <main class="main">
+
+    <div class="header">
+      <div class="header-left">
+        <h1>Configuración</h1>
+        <p>Personaliza tu experiencia en la plataforma</p>
+      </div>
+      <div class="header-right">
+        <div class="bell-btn" onclick="location.href='analisis.html'" style="cursor:pointer;">
+          <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <span class="bell-dot"></span>
+        </div>
+        <div class="user-badge" id="userBadge">
+          <div class="user-avatar" style="background:var(--verde);">...</div>
+          <span>Cargando...</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <div class="config-grid">
+
+        <div class="card">
+          <div class="card-title">👤 Mi perfil</div>
+          <div id="perfilContainer">
+            <div style="color:var(--gris-medio);font-size:12px;">Cargando perfil...</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">🎨 Apariencia</div>
+
+          <div class="config-row">
+            <div>
+              <div class="config-label">Modo oscuro</div>
+              <div class="config-desc">Cambia entre tema claro y oscuro</div>
+            </div>
+            <label class="toggle-wrap">
+              <input type="checkbox" id="darkModeToggle" onchange="toggleDarkMode(this.checked)">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+
+          <div class="config-row">
+            <div>
+              <div class="config-label">Selector rápido</div>
+              <div class="config-desc">Elegí tu tema preferido</div>
+            </div>
+            <div class="theme-selector">
+              <div class="theme-option claro" onclick="setTheme('claro')" title="Claro"></div>
+              <div class="theme-option oscuro" onclick="setTheme('oscuro')" title="Oscuro"></div>
+            </div>
+          </div>
+
+          <div id="themeSaveMsg" class="save-msg success">Tema guardado para tu usuario</div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">🔔 Notificaciones</div>
+
+          <div class="config-row">
+            <div>
+              <div class="config-label">Notificaciones por email</div>
+              <div class="config-desc">Recibir alertas importantes al correo</div>
+            </div>
+            <label class="toggle-wrap">
+              <input type="checkbox" id="emailNotif" checked>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+
+          <div class="config-row">
+            <div>
+              <div class="config-label">Notificaciones SMS</div>
+              <div class="config-desc">Alertas de alta prioridad por SMS</div>
+            </div>
+            <label class="toggle-wrap">
+              <input type="checkbox" id="smsNotif">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+
+          <div class="config-row">
+            <div>
+              <div class="config-label">Notificaciones en app</div>
+              <div class="config-desc">Notificaciones dentro de la plataforma</div>
+            </div>
+            <label class="toggle-wrap">
+              <input type="checkbox" id="appNotif" checked>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">⚙️ Información de cuenta</div>
+          <div id="infoCuenta">
+            <div class="info-row"><span class="info-label">Rol</span><span class="info-value" id="cuentaRol">--</span></div>
+            <div class="info-row"><span class="info-label">Junta Vecinal</span><span class="info-value" id="cuentaJunta">--</span></div>
+            <div class="info-row"><span class="info-label">Barrio</span><span class="info-value" id="cuentaBarrio">--</span></div>
+            <div class="info-row"><span class="info-label">Registro</span><span class="info-value" id="cuentaRegistro">--</span></div>
+          </div>
+          <div style="margin-top:16px;display:flex;gap:10px;">
+            <button class="btn-danger" onclick="confirmarCerrarSesion()">Cerrar sesión</button>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </main>
+
+</div>
+
+<script>
+  let usuarioActual = null
+  let perfilActual = null
+
+  function getStorageKey() {
+    const userId = usuarioActual?.id || usuarioActual?.email || 'default'
+    return 'scsp_theme_' + userId
+  }
+  function aplicarTema(oscuro) {
+    document.body.classList.toggle('dark', oscuro)
+    const toggle = document.getElementById('darkModeToggle')
+    if (toggle) toggle.checked = oscuro
+
+    document.querySelectorAll('.theme-option').forEach(el => {
+      el.classList.toggle('active',
+        (oscuro && el.classList.contains('oscuro')) ||
+        (!oscuro && el.classList.contains('claro'))
+      )
+    })
+  }
+
+  function setThemeStorage(value) {
+    // Guardar preferencia global
+    try { localStorage.setItem('scsp_theme', value) } catch(e) {}
+    // Guardar preferencia por usuario si existe
+    try {
+      const key = getStorageKey()
+      console.log('setThemeStorage: global=scsp_theme=' + value + ', userKey=' + key + '=' + value)
+      if (key) localStorage.setItem(key, value)
+    } catch(e) {}
+  }
+
+  function cargarTema() {
+    // Preferir preferencia por usuario, si no existe usar la global
+    try {
+      const key = getStorageKey()
+      let saved = null
+      if (key) saved = localStorage.getItem(key)
+      const globalSaved = localStorage.getItem('scsp_theme')
+      console.log('cargarTema: userKey=' + key + ' => ' + saved + ', global=scsp_theme => ' + globalSaved)
+      if (!saved) saved = globalSaved
+      aplicarTema(saved === 'dark')
+    } catch (e) {
+      aplicarTema(false)
+    }
+  }
+
+  function toggleDarkMode(oscuro) {
+    aplicarTema(oscuro)
+    setThemeStorage(oscuro ? 'dark' : 'light')
+    mostrarMsg()
+  }
+
+  function setTheme(tema) {
+    const oscuro = tema === 'oscuro'
+    aplicarTema(oscuro)
+    setThemeStorage(oscuro ? 'dark' : 'light')
+    mostrarMsg()
+  }
+
+  function mostrarMsg() {
+    const msg = document.getElementById('themeSaveMsg')
+    msg.style.display = 'block'
+    setTimeout(() => { msg.style.display = 'none' }, 2000)
+  }
+
+  function cargarPerfil() {
+    const data = getUsuarioSesion()
+    if (!data) return
+
+    usuarioActual = data.usuario || data.user
+    perfilActual = data.perfil
+
+    const email = usuarioActual?.email || data.usuario?.email || data.user?.email || '---'
+    const nombre = perfilActual?.nombres || email?.split('@')[0] || 'Usuario'
+    const apellidos = perfilActual?.apellidos || ''
+    const inicial = nombre.charAt(0).toUpperCase()
+    const telefono = perfilActual?.telefono || '---'
+    const rol = perfilActual?.rol?.nombre_rol || '---'
+    const junta = perfilActual?.junta_vecinal?.nombre || '---'
+    const registro = perfilActual?.fecha_registro ? new Date(perfilActual.fecha_registro).toLocaleDateString('es-BO') : '---'
+
+    document.getElementById('perfilContainer').innerHTML = `
+      <div class="profile-card">
+        <div class="profile-avatar">${inicial}</div>
+        <div>
+          <div class="profile-name">${nombre} ${apellidos}</div>
+          <div class="profile-email">${email}</div>
+          <div class="profile-rol">${rol}</div>
+        </div>
+      </div>
+      <div class="info-row"><span class="info-label">Teléfono</span><span class="info-value">${telefono}</span></div>
+      <div class="info-row"><span class="info-label">Correo</span><span class="info-value">${email}</span></div>
+    `
+
+    document.getElementById('cuentaRol').textContent = rol
+    document.getElementById('cuentaJunta').textContent = junta
+    document.getElementById('cuentaBarrio').textContent = '---'
+    document.getElementById('cuentaRegistro').textContent = registro
+
+    cargarTema()
+  }
+
+  function confirmarCerrarSesion() {
+    if (confirm('¿Estás seguro de cerrar sesión?')) {
+      cerrarSesion()
+    }
+  }
+</script>
+<script src="js/auth.js"></script>
+<script>
+  verificarSesion().then(async function(session) {
+    if (session) {
+      verificarAcceso()
+      generarSidebar()
+      await new Promise(r => setTimeout(r, 300))
+      actualizarHeaderUsuario()
+      cargarPerfil()
+    } else {
+      window.location.href = 'login.html'
+    }
+  })
+</script>
+</body>
+</html>

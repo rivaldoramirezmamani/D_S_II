@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Santa Cruz Segura Predictiva - Reportar Incidente</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="/js/supabase.js"></script>
+<style>
+  :root {
+    --verde: #1a6b2f;
+    --verde-medio: #2d8a47;
+    --verde-claro: #4caf50;
+    --verde-suave: #e8f5e9;
+    --naranja: #f5a623;
+    --rojo: #e53935;
+    --rojo-claro: #ffebee;
+    --gris-oscuro: #1c2b1e;
+    --gris: #4a5568;
+    --gris-medio: #718096;
+    --gris-claro: #f4f6f4;
+    --blanco: #ffffff;
+    --sombra: 0 2px 12px rgba(0,0,0,0.10);
+    --sombra-fuerte: 0 4px 24px rgba(0,0,0,0.15);
+    --text-primary: var(--gris-oscuro);
+    --bg-card: #ffffff;
+    --border-card: #e8f0e8;
+    --header-bg: #ffffff;
+    --header-border: #e2e8f0;
+    --sidebar-bg: #1c2b1e;
+    --sidebar-text: #ffffff;
+    --topbar-bg: #1c2b1e;
+    --topbar-text: #ffffff;
+    --input-bg: #ffffff;
+    --input-border: #d1dbd1;
+  }
+
+body.dark {
+    --verde: #4caf50;
+    --verde-medio: #66bb6a;
+    --verde-claro: #81c784;
+    --verde-suave: #1b3d1f;
+    --naranja: #ffb74d;
+    --rojo: #ef5350;
+    --rojo-claro: #3d1a1a;
+    --text-primary: #e8eaed;
+    --gris: #b0b3b8;
+    --gris-medio: #8a8d94;
+    --gris-claro: #1a1a2e;
+    --blanco: #c8cdd0;
+    --sombra: 0 2px 12px rgba(0,0,0,0.30);
+    --sombra-fuerte: 0 4px 24px rgba(0,0,0,0.40);
+    --bg-card: #1e2a3a;
+    --border-card: #2a3a4e;
+    --header-bg: #16213e;
+    --header-border: #2a3a4e;
+    --sidebar-bg: #0a0e1a;
+    --sidebar-text: #c8cdd0;
+    --topbar-bg: #0a0e1a;
+    --topbar-text: #c8cdd0;
+    --input-bg: #1a2535;
+    --input-border: #2a3a4e;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--gris-claro);
+    color: var(--text-primary);
+    min-height: 100vh;
+    transition: background 0.25s, color 0.25s;
+  }
+
+  .topbar {
+    background: var(--topbar-bg);
+    color: var(--topbar-text);
+    text-align: center;
+    font-size: 12px;
+    padding: 6px 20px;
+    letter-spacing: 0.3px;
+    transition: background 0.25s, color 0.25s;
+  }
+
+  .layout {
+    display: flex;
+    min-height: calc(100vh - 30px);
+  }
+
+  .sidebar {
+    width: 220px;
+    background: var(--sidebar-bg);
+    color: var(--sidebar-text);
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    flex-shrink: 0;
+    transition: background 0.25s, color 0.25s;
+  }
+
+  .sidebar-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 22px 20px 18px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+
+  .brand-icon {
+    width: 38px; height: 38px;
+    background: var(--verde);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  .brand-icon svg { width: 22px; height: 22px; fill: white; }
+
+  .brand-text { line-height: 1.2; }
+  .brand-text .t1 { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 13px; color: white; }
+  .brand-text .t2 { font-size: 10px; color: var(--verde-claro); font-weight: 500; }
+
+  .sidebar nav { padding: 12px 0; flex: 1; overflow-y: auto; }
+
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 20px;
+    font-size: 13px; font-weight: 500;
+    color: rgba(255,255,255,0.65);
+    cursor: pointer;
+    transition: all 0.18s;
+    border-left: 3px solid transparent;
+    text-decoration: none;
+  }
+  .nav-item:hover { color: white; background: rgba(255,255,255,0.06); }
+  .nav-item.active {
+    color: white;
+    border-left: 3px solid var(--verde-claro);
+    background: rgba(76,175,80,0.12);
+  }
+  .nav-item svg { width: 16px; height: 16px; flex-shrink: 0; }
+
+  .sidebar-footer {
+    padding: 16px 20px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    font-size: 11.5px;
+    color: rgba(255,255,255,0.45);
+  }
+
+  .main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .header {
+    background: var(--header-bg);
+    border-bottom: 1px solid var(--header-border);
+    padding: 14px 28px;
+    display: flex; align-items: center; justify-content: space-between;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+  }
+
+  .header-left h1 {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 18px; font-weight: 800;
+    color: var(--text-primary);
+  }
+  .header-left p { font-size: 12px; color: var(--gris-medio); margin-top: 1px; }
+
+  .header-right { display: flex; align-items: center; gap: 14px; }
+
+  .bell-btn {
+    width: 36px; height: 36px;
+    border: 1.5px solid var(--header-border);
+    border-radius: 8px;
+    background: var(--bg-card);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    position: relative;
+  }
+  .bell-btn svg { width: 18px; height: 18px; stroke: var(--gris); fill: none; }
+  .bell-dot {
+    width: 8px; height: 8px;
+    background: var(--rojo);
+    border-radius: 50%;
+    position: absolute; top: 5px; right: 5px;
+    border: 1.5px solid var(--bg-card);
+  }
+
+  .user-badge {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--verde-suave);
+    border: 1.5px solid var(--border-card);
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-size: 12px; font-weight: 600; color: var(--verde);
+  }
+  .user-avatar {
+    width: 26px; height: 26px;
+    background: var(--verde);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-size: 11px; font-weight: 700;
+  }
+
+  .content { padding: 24px 28px; flex: 1; overflow-y: auto; }
+
+  .section-title {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 14px; font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .card {
+    background: var(--bg-card);
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: var(--sombra);
+    border: 1px solid var(--border-card);
+  }
+  .card-title {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 13px; font-weight: 700; color: var(--text-primary);
+    margin-bottom: 14px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .card-title .badge-count {
+    background: var(--rojo-claro);
+    color: var(--rojo);
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 12px;
+  }
+
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  .form-row { margin-bottom: 14px; }
+  .form-row label {
+    display: block;
+    font-size: 12px; font-weight: 600; color: var(--text-primary);
+    margin-bottom: 5px;
+    text-transform: uppercase; letter-spacing: 0.4px;
+  }
+
+  .form-row input, .form-row select, .form-row textarea {
+    width: 100%;
+    padding: 9px 12px;
+    border: 1.5px solid #d1dbd1;
+    border-radius: 7px;
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    color: var(--text-primary);
+    background: #f9fbf9;
+    transition: border 0.18s;
+    outline: none;
+  }
+  .form-row input:focus, .form-row select:focus, .form-row textarea:focus {
+    border-color: var(--verde-claro);
+    background: white;
+  }
+  .form-row textarea { resize: vertical; min-height: 80px; }
+
+  .form-row-half {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .tipo-incidente-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-top: 4px;
+  }
+  .tipo-btn {
+    padding: 12px 6px;
+    border: 1.5px solid #d1dbd1;
+    border-radius: 8px;
+    text-align: center;
+    font-size: 11px; font-weight: 600;
+    cursor: pointer;
+    background: #f9fbf9;
+    transition: all 0.18s;
+    color: var(--gris);
+  }
+  .tipo-btn:hover { border-color: var(--verde); color: var(--verde); background: var(--verde-suave); }
+  .tipo-btn.selected { border-color: var(--verde); color: var(--verde); background: var(--verde-suave); }
+  .tipo-btn .ico { font-size: 20px; display: block; margin-bottom: 4px; }
+
+  .btn-primary {
+    width: 100%;
+    padding: 11px;
+    background: var(--verde);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 13px; font-weight: 700;
+    cursor: pointer;
+    letter-spacing: 0.5px;
+    transition: background 0.18s;
+  }
+  .btn-primary:hover { background: var(--verde-medio); }
+  .btn-secondary {
+    padding: 9px 16px;
+    background: transparent;
+    color: var(--verde);
+    border: 1.5px solid var(--verde);
+    border-radius: 8px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 12px; font-weight: 700;
+    cursor: pointer;
+    transition: all 0.18s;
+  }
+  .btn-secondary:hover { background: var(--verde-suave); }
+
+  .incidentes-list {
+    margin-top: 4px;
+  }
+  .incidente-item {
+    padding: 12px 0;
+    border-bottom: 1px solid #f0f4f0;
+    font-size: 12px;
+  }
+  .incidente-item:last-child { border-bottom: none; }
+  .inc-item-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+  .inc-tipo { font-weight: 700; color: var(--text-primary); }
+  .badge {
+    padding: 2px 9px;
+    border-radius: 20px;
+    font-size: 10px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.3px;
+  }
+  .badge.pendiente { background: #fff3e0; color: var(--naranja); }
+  .badge.validado { background: #e8f5e9; color: var(--verde); }
+  .badge.rechazado { background: var(--rojo-claro); color: var(--rojo); }
+  .badge.revision { background: #e3f2fd; color: #1976d2; }
+  .inc-meta { color: var(--gris-medio); display: flex; gap: 12px; }
+  .inc-meta span { display: flex; align-items: center; gap: 4px; }
+
+  .modal-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-overlay.active { display: flex; }
+  .modal-content {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    width: 90%;
+    max-width: 600px;
+    max-height: 80vh;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+  }
+  .modal-content .modal-title {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 14px; font-weight: 700;
+    margin-bottom: 12px;
+  }
+  .modal-mapa {
+    width: 100%; height: 360px;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 10px;
+  }
+  .modal-coords {
+    font-size: 12px;
+    color: var(--gris-medio);
+    margin-bottom: 10px;
+  }
+  .modal-btns { display: flex; gap: 10px; justify-content: flex-end; }
+  .modal-btns button {
+    padding: 8px 18px;
+    border-radius: 8px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 12px; font-weight: 700;
+    cursor: pointer;
+    border: none;
+  }
+  .modal-btns .btn-confirm { background: var(--verde); color: white; }
+  .modal-btns .btn-cancel { background: var(--input-bg); color: var(--text-primary); }
+
+  @media (max-width: 1100px) {
+    .form-grid { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 700px) {
+    .sidebar { display: none; }
+  }
+</style>
+</head>
+<body>
+<script>try{document.body.classList.toggle('dark',localStorage.getItem('scsp_theme')==='dark')}catch(e){}</script>
+
+<div class="topbar">
+  Santa Cruz Segura Predictiva: plataforma web con IA para la anticipación colaborativa del delito en barrios
+</div>
+
+<div class="layout">
+
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 2L3 7v5c0 5.25 3.75 10.15 9 11.35C17.25 22.15 21 17.25 21 12V7L12 2z"/></svg>
+      </div>
+      <div class="brand-text">
+        <div class="t1">Santa Cruz<br>Segura Predictiva</div>
+        <div class="t2">Plataforma IA</div>
+      </div>
+    </div>
+    <nav id="sidebarNav"></nav>
+    <div class="sidebar-footer">
+      <strong style="color:rgba(255,255,255,0.7)">Junta Vecinal</strong><br>San Pedro
+    </div>
+  </aside>
+
+  <main class="main">
+
+    <div class="header">
+      <div class="header-left">
+        <h1>Reportar Incidente</h1>
+        <p>Registro de incidentes de seguridad — Junta Vecinal San Pedro</p>
+      </div>
+      <div class="header-right">
+        <div class="bell-btn" onclick="location.href='analisis.html'" style="cursor:pointer;">
+          <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <span class="bell-dot"></span>
+        </div>
+        <div class="user-badge" id="userBadge">
+          <div class="user-avatar" style="background:var(--verde);">...</div>
+          <span>Cargando...</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <div class="form-grid">
+        <div class="card">
+          <div class="card-title">Nuevo reporte de incidente</div>
+
+          <div class="form-row">
+            <label>TIPO DE INCIDENTE <span style="color:var(--rojo)">*</span></label>
+            <div class="tipo-incidente-grid">
+              <div class="tipo-btn selected" onclick="selTipo(this)" data-tipo="Robo"><span class="ico">🏠</span>Robo</div>
+              <div class="tipo-btn" onclick="selTipo(this)" data-tipo="Violencia"><span class="ico">👊</span>Violencia</div>
+              <div class="tipo-btn" onclick="selTipo(this)" data-tipo="Vandalismo"><span class="ico">🔥</span>Vandalismo</div>
+              <div class="tipo-btn" onclick="selTipo(this)" data-tipo="Sospechoso"><span class="ico">😰</span>Sospechoso</div>
+              <div class="tipo-btn" onclick="selTipo(this)" data-tipo="Hurto"><span class="ico">👜</span>Hurto</div>
+              <div class="tipo-btn" onclick="selTipo(this)" data-tipo="Otros"><span class="ico">📋</span>Otros</div>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <label>DESCRIPCIÓN DEL INCIDENTE <span style="color:var(--rojo)">*</span></label>
+            <textarea id="descripcion" placeholder="Describe brevemente lo que ocurrió, personas involucradas, características relevantes..." style="min-height:100px;"></textarea>
+          </div>
+
+          <div class="form-row-half">
+            <div class="form-row">
+              <label>FECHA Y HORA <span style="color:var(--rojo)">*</span></label>
+              <input type="datetime-local" id="fecha_hora">
+            </div>
+            <div class="form-row">
+              <label>NIVEL DE URGENCIA <span style="color:var(--rojo)">*</span></label>
+              <select id="urgencia">
+                <option value="Baja">Baja — Información</option>
+                <option value="Media">Media — Seguimiento</option>
+                <option value="Alta" selected>Alta — Atención pronta</option>
+                <option value="Critica">Crítica — Emergencia</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <label>DIRECCIÓN / CALLE <span style="color:var(--rojo)">*</span></label>
+            <input type="text" id="calle" placeholder="Ej: Calle 4 de Agosto y Almendros">
+          </div>
+
+          <div class="form-row-half">
+            <div class="form-row">
+              <label>BARRIO</label>
+              <select id="barrio">
+                <option>San Pedro</option>
+                <option>Villa Primero de Mayo</option>
+                <option>Plan Tres Mil</option>
+                <option>Equipetrol</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <label>ZONA</label>
+              <input type="text" id="zona" placeholder="Ej: Zona Norte">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <label>REFERENCIA DE UBICACIÓN</label>
+            <input type="text" id="referencia" placeholder="Ej: Frente a la tienda Don Pepe">
+          </div>
+
+          <div class="form-row-half">
+            <div class="form-row">
+              <label>LATITUD <span style="color:var(--rojo)">*</span></label>
+              <input type="number" step="any" id="inc_latitud" placeholder="-17.78629">
+            </div>
+            <div class="form-row">
+              <label>LONGITUD <span style="color:var(--rojo)">*</span></label>
+              <input type="number" step="any" id="inc_longitud" placeholder="-63.18117">
+            </div>
+          </div>
+          <div style="text-align:right;margin-top:-8px;margin-bottom:14px;">
+            <button type="button" class="btn-secondary" onclick="abrirMapaPicker('incidente')" style="font-size:11px;padding:5px 12px;">
+              📍 Seleccionar en mapa
+            </button>
+          </div>
+
+          <div class="form-row">
+            <label>EVIDENCIA (FOTO)</label>
+            <input type="file" id="evidencia" accept="image/*" capture="environment" style="padding:6px 12px;font-size:13px;">
+          </div>
+
+          <button class="btn-primary" onclick="enviarIncidente()">
+            ✓ &nbsp;ENVIAR REPORTE DE INCIDENTE
+          </button>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Últimos incidentes reportados</div>
+
+          <div style="margin-bottom:10px;">
+            <select id="filtroIncidentes" onchange="filtrarIncidentes()" style="width:100%;padding:7px 10px;border:1.5px solid var(--input-border);border-radius:7px;font-size:12px;font-weight:600;background:var(--input-bg);color:var(--text-primary);outline:none;cursor:pointer;">
+              <option value="todos">Todos</option>
+              <option value="noRevisados">🔴 No revisados</option>
+              <option value="revisados">✅ Revisados</option>
+            </select>
+          </div>
+
+          <div class="incidentes-list" id="incidentesList"></div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="modal-overlay" id="mapaPickerModal">
+      <div class="modal-content">
+        <div class="modal-title">📍 Seleccionar ubicación en el mapa</div>
+        <div class="modal-mapa" id="pickerMapa"></div>
+        <div class="modal-coords" id="pickerCoords">Haz clic en el mapa para seleccionar</div>
+        <div class="modal-btns">
+          <button class="btn-cancel" onclick="cerrarMapaPicker()">Cancelar</button>
+          <button class="btn-confirm" onclick="confirmarMapaPicker()">Confirmar ubicación</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-overlay" id="detalleModal">
+      <div class="modal-content">
+        <div class="modal-title" id="detalleTitulo">📋 Detalle del incidente</div>
+        <div id="detalleBody" style="font-size:13px;line-height:1.6;"></div>
+        <div class="modal-btns" style="margin-top:14px;">
+          <button class="btn-cancel" onclick="cerrarDetalle()">Cerrar</button>
+          <button class="btn-confirm" id="detalleValidarBtn" onclick="validarDesdeDetalle('Validado')" style="background:var(--verde);color:white;">✓ Validar</button>
+          <button class="btn-confirm" id="detalleRechazarBtn" onclick="validarDesdeDetalle('Rechazado')" style="background:var(--rojo);color:white;">✗ Rechazar</button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+  var pickerMapa = null, pickerMarker = null, pickerTarget = null, pickerLat = null, pickerLng = null
+
+  function selTipo(el) {
+    document.querySelectorAll('.tipo-btn').forEach(b => b.classList.remove('selected'));
+    el.classList.add('selected');
+  }
+
+  function abrirMapaPicker(tipo) {
+    pickerTarget = tipo
+    document.getElementById('mapaPickerModal').classList.add('active')
+    setTimeout(function() {
+      if (!pickerMapa) {
+        pickerMapa = L.map('pickerMapa').setView([-17.78629, -63.18117], 14)
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '&copy; OpenStreetMap',
+          maxZoom: 18
+        }).addTo(pickerMapa)
+        pickerMapa.on('click', function(e) {
+          pickerLat = e.latlng.lat
+          pickerLng = e.latlng.lng
+          if (pickerMarker) pickerMapa.removeLayer(pickerMarker)
+          pickerMarker = L.marker(e.latlng).addTo(pickerMapa)
+          document.getElementById('pickerCoords').textContent = 'Lat: ' + pickerLat.toFixed(6) + ', Lng: ' + pickerLng.toFixed(6)
+        })
+      }
+      pickerMapa.invalidateSize()
+    }, 200)
+  }
+
+  function cerrarMapaPicker() {
+    document.getElementById('mapaPickerModal').classList.remove('active')
+  }
+
+  function confirmarMapaPicker() {
+    if (pickerLat && pickerLng) {
+      if (pickerTarget === 'reporte') {
+        document.getElementById('rep_latitud').value = pickerLat.toFixed(6)
+        document.getElementById('rep_longitud').value = pickerLng.toFixed(6)
+      } else {
+        document.getElementById('inc_latitud').value = pickerLat.toFixed(6)
+        document.getElementById('inc_longitud').value = pickerLng.toFixed(6)
+      }
+    }
+    cerrarMapaPicker()
+  }
+
+</script>
+<script src="js/auth.js"></script>
+<script>
+  const badgeEstado = { Pendiente: 'pendiente', Validado: 'validado', Rechazado: 'rechazado', 'En revisión': 'revision', Enviado: 'pendiente', Atendido: 'validado' }
+  const iconoTipo = { Robo: '🏠', Violencia: '👊', Vandalismo: '🔥', Sospechoso: '😰', Hurto: '👜', Otros: '📋' }
+
+  function puedeValidar() {
+    const data = getUsuarioSesion()
+    const rol = data?.perfil?.rol?.id_rol
+    return rol === 1 || rol === 3 || rol === 4
+  }
+
+  async function validarIncidente(id, resultado) {
+    const btns = document.querySelectorAll(`.btn-validar-${id}`)
+    btns.forEach(b => { b.disabled = true; b.style.opacity = '0.5' })
+    try {
+      const res = await apiFetch(`/api/incidentes/${id}/validar`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ resultado, comentario: '' })
+      })
+      if (!res.ok) throw new Error('Error al validar')
+      cargarIncidentes()
+    } catch (e) {
+      btns.forEach(b => { b.disabled = false; b.style.opacity = '1' })
+      alert('Error al validar el incidente')
+    }
+  }
+
+  function verDetalle(id) {
+    const i = incidentesData.find(d => d.id_incidente === id)
+    if (!i) return
+    detalleActualId = id
+    const tipo = i.tipo_incidente?.nombre || 'Otros'
+    const reportero = i.usuario ? (i.usuario.nombres + ' ' + i.usuario.apellidos) : 'Desconocido'
+    const email = i.usuario?.correo || ''
+    const telefono = i.usuario?.telefono || ''
+    const calle = i.ubicacion?.calle?.nombre || ''
+    const referencia = i.ubicacion?.referencia || ''
+    const coords = (i.ubicacion?.latitud && i.ubicacion?.longitud) ? parseFloat(i.ubicacion.latitud).toFixed(6) + ', ' + parseFloat(i.ubicacion.longitud).toFixed(6) : ''
+    const fecha = i.fecha_hora ? new Date(i.fecha_hora).toLocaleString('es') : ''
+    const evidencia = i.evidencia_url || ''
+    document.getElementById('detalleTitulo').textContent = '📋 ' + tipo + ' — ' + i.estado
+    document.getElementById('detalleBody').innerHTML = `
+      <table style="width:100%;border-collapse:collapse;">
+        <tr><td style="padding:6px 8px;font-weight:600;width:130px;color:var(--gris);border-bottom:1px solid var(--border-card);">Reportado por</td><td style="padding:6px 8px;border-bottom:1px solid var(--border-card);font-weight:600;">${reportero}</td></tr>
+        ${email ? '<tr><td style="padding:6px 8px;font-weight:600;color:var(--gris);border-bottom:1px solid var(--border-card);">Email</td><td style="padding:6px 8px;border-bottom:1px solid var(--border-card);">' + email + '</td></tr>' : ''}
+        ${telefono ? '<tr><td style="padding:6px 8px;font-weight:600;color:var(--gris);border-bottom:1px solid var(--border-card);">Teléfono</td><td style="padding:6px 8px;border-bottom:1px solid var(--border-card);">' + telefono + '</td></tr>' : ''}
+        <tr><td style="padding:6px 8px;font-weight:600;color:var(--gris);border-bottom:1px solid var(--border-card);">Descripción</td><td style="padding:6px 8px;border-bottom:1px solid var(--border-card);">${i.descripcion || ''}</td></tr>
+        <tr><td style="padding:6px 8px;font-weight:600;color:var(--gris);border-bottom:1px solid var(--border-card);">Fecha y hora</td><td style="padding:6px 8px;border-bottom:1px solid var(--border-card);">${fecha}</td></tr>
+        <tr><td style="padding:6px 8px;font-weight:600;color:var(--gris);border-bottom:1px solid var(--border-card);">Calle</td><td style="padding:6px 8px;border-bottom:1px solid var(--border-card);">${calle}</td></tr>
+        ${referencia ? '<tr><td style="padding:6px 8px;font-weight:600;color:var(--gris);border-bottom:1px solid var(--border-card);">Referencia</td><td style="padding:6px 8px;border-bottom:1px solid var(--border-card);">' + referencia + '</td></tr>' : ''}
+        ${coords ? '<tr><td style="padding:6px 8px;font-weight:600;color:var(--gris);border-bottom:1px solid var(--border-card);">Coordenadas</td><td style="padding:6px 8px;border-bottom:1px solid var(--border-card);">🌐 ' + coords + '</td></tr>' : ''}
+        ${evidencia ? '<tr><td style="padding:6px 8px;font-weight:600;color:var(--gris);border-bottom:1px solid var(--border-card);">Evidencia</td><td style="padding:6px 8px;border-bottom:1px solid var(--border-card);"><img src="' + evidencia + '" style="max-width:100%;max-height:200px;border-radius:6px;cursor:pointer;" onclick="window.open(\'' + evidencia + '\',\'_blank\')"></td></tr>' : ''}
+      </table>
+    `
+    const yaProcesado = i.estado === 'Validado' || i.estado === 'Rechazado'
+    document.getElementById('detalleValidarBtn').style.display = yaProcesado ? 'none' : ''
+    document.getElementById('detalleRechazarBtn').style.display = yaProcesado ? 'none' : ''
+    document.getElementById('detalleModal').classList.add('active')
+  }
+
+  let detalleActualId = null
+
+  function cerrarDetalle() {
+    document.getElementById('detalleModal').classList.remove('active')
+    detalleActualId = null
+  }
+
+  async function validarDesdeDetalle(resultado) {
+    if (!detalleActualId) return
+    await validarIncidente(detalleActualId, resultado)
+    cerrarDetalle()
+  }
+
+  function renderIncidente(i) {
+    const tipo = i.tipo_incidente?.nombre || 'Otros'
+    const icono = iconoTipo[tipo] || '📋'
+    const calle = i.ubicacion?.calle?.nombre || ''
+    const fecha = i.fecha_hora ? new Date(i.fecha_hora).toLocaleString('es') : ''
+    const coords = (i.ubicacion?.latitud && i.ubicacion?.longitud) ? '🌐 ' + parseFloat(i.ubicacion.latitud).toFixed(4) + ', ' + parseFloat(i.ubicacion.longitud).toFixed(4) : ''
+    const reportero = i.usuario ? (i.usuario.nombres + ' ' + i.usuario.apellidos) : ''
+    const desc = i.descripcion || ''
+    const showValidate = puedeValidar() && i.estado !== 'Validado' && i.estado !== 'Rechazado'
+    return `<div class="incidente-item">
+      <div class="inc-item-top">
+        <span class="inc-tipo">${icono} ${tipo}</span>
+        <span class="badge ${badgeEstado[i.estado] || 'pendiente'}">${i.estado}</span>
+      </div>
+      <div style="font-size:12px;color:var(--gris);margin:4px 0;padding:4px 8px;background:var(--gris-claro);border-radius:6px;">${desc}</div>
+      <div class="inc-meta">
+        <span>👤 ${reportero}</span>
+        <span>📍 ${calle}</span>
+        <span>🕐 ${fecha}</span>
+        ${coords ? '<span>' + coords + '</span>' : ''}
+      </div>
+      ${showValidate ? `
+      <div style="margin-top:8px;display:flex;gap:6px;">
+        <button class="btn-validar-${i.id_incidente}" onclick="validarIncidente(${i.id_incidente},'Validado')" style="padding:4px 10px;border:none;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;background:var(--verde);color:white;">✓ Validar</button>
+        <button class="btn-validar-${i.id_incidente}" onclick="validarIncidente(${i.id_incidente},'Rechazado')" style="padding:4px 10px;border:none;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;background:var(--rojo);color:white;">✗ Rechazar</button>
+        <button class="btn-validar-${i.id_incidente}" onclick="verDetalle(${i.id_incidente})" style="padding:4px 10px;border:none;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;background:var(--naranja);color:white;">↻ Revisar</button>
+      </div>` : ''}
+    </div>`
+  }
+
+  let incidentesData = []
+
+  function filtrarIncidentes() {
+    const filtro = document.getElementById('filtroIncidentes').value
+    const container = document.getElementById('incidentesList')
+    let items = incidentesData
+    if (filtro === 'noRevisados') items = incidentesData.filter(i => i.estado !== 'Validado' && i.estado !== 'Rechazado')
+    if (filtro === 'revisados') items = incidentesData.filter(i => i.estado === 'Validado' || i.estado === 'Rechazado')
+    if (!items.length) {
+      container.innerHTML = '<div style="text-align:center;padding:20px;color:var(--gris-medio);font-size:13px;">No hay incidentes</div>'
+      return
+    }
+    container.innerHTML = items.map(renderIncidente).join('')
+  }
+
+  async function cargarIncidentes() {
+    try {
+      const res = await apiFetch('/api/incidentes')
+      incidentesData = await res.json()
+      filtrarIncidentes()
+    } catch (e) { console.error('Error al cargar incidentes:', e) }
+  }
+
+  async function enviarIncidente() {
+    const btn = document.querySelector('.btn-primary');
+    const original = btn.innerHTML;
+    btn.innerHTML = '⏳ Enviando...';
+    btn.style.opacity = '0.7';
+    btn.disabled = true;
+
+    try {
+      let evidenciaUrl = ''
+      const fileInput = document.getElementById('evidencia')
+      if (fileInput.files && fileInput.files[0]) {
+        try {
+          const file = fileInput.files[0]
+          const ext = file.name.split('.').pop() || 'jpg'
+          const filePath = 'incidentes/' + Date.now() + '_' + Math.random().toString(36).slice(2) + '.' + ext
+          const { error: uploadError } = await _supabaseClient.storage
+            .from('evidencias')
+            .upload(filePath, file)
+          if (!uploadError) {
+            const { data: urlData } = _supabaseClient.storage
+              .from('evidencias')
+              .getPublicUrl(filePath)
+            evidenciaUrl = urlData.publicUrl
+          }
+        } catch (e) {
+          console.warn('No se pudo subir la imagen, se envía sin evidencia:', e)
+        }
+      }
+
+      const tipoBtn = document.querySelector('.tipo-btn.selected');
+      const payload = {
+        tipo: tipoBtn ? tipoBtn.dataset.tipo : 'Robo',
+        descripcion: document.getElementById('descripcion').value,
+        fecha_hora: document.getElementById('fecha_hora').value,
+        urgencia: document.getElementById('urgencia').value,
+        calle: document.getElementById('calle').value,
+        barrio: document.getElementById('barrio').value,
+        zona: document.getElementById('zona').value,
+        referencia: document.getElementById('referencia').value,
+        evidencia: evidenciaUrl,
+        latitud: document.getElementById('inc_latitud').value,
+        longitud: document.getElementById('inc_longitud').value
+      };
+
+      const res = await apiFetch('/api/incidentes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (!res.ok) throw new Error('Error al enviar');
+      btn.innerHTML = '✅ ¡Incidente reportado exitosamente!';
+      btn.style.background = '#1a6b2f';
+      btn.style.opacity = '1';
+      cargarIncidentes()
+      setTimeout(() => {
+        btn.innerHTML = original;
+        btn.style.background = '';
+        btn.style.opacity = '1';
+        btn.disabled = false;
+        document.getElementById('descripcion').value = '';
+        document.getElementById('calle').value = '';
+        document.getElementById('referencia').value = '';
+        document.getElementById('evidencia').value = '';
+        document.getElementById('inc_latitud').value = '';
+        document.getElementById('inc_longitud').value = '';
+      }, 2500);
+    } catch (e) {
+      btn.innerHTML = '⚠️ ' + e.message;
+      btn.style.background = '#e53935';
+      btn.style.opacity = '1';
+      setTimeout(() => {
+        btn.innerHTML = original;
+        btn.style.background = '';
+        btn.style.opacity = '1';
+        btn.disabled = false;
+      }, 2500);
+    }
+  }
+
+  verificarSesion().then(async function(session) {
+    if (session) {
+      verificarAcceso()
+      generarSidebar()
+      await new Promise(r => setTimeout(r, 300))
+      actualizarHeaderUsuario()
+      cargarIncidentes()
+    } else {
+      window.location.href = 'login.html'
+    }
+  })
+</script>
+</body>
+</html>

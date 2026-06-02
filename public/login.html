@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Santa Cruz Segura Predictiva - Iniciar Sesión</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root {
+    --verde: #1a6b2f;
+    --verde-medio: #2d8a47;
+    --verde-claro: #4caf50;
+    --verde-suave: #e8f5e9;
+    --naranja: #f5a623;
+    --rojo: #e53935;
+    --rojo-claro: #ffebee;
+    --gris-oscuro: #1c2b1e;
+    --gris: #4a5568;
+    --gris-medio: #718096;
+    --gris-claro: #f4f6f4;
+    --blanco: #ffffff;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--gris-claro);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding-top: 32px;
+  }
+
+  .login-container { width: 100%; max-width: 420px; padding: 20px; }
+
+  .login-card {
+    background: var(--blanco);
+    border-radius: 16px;
+    padding: 40px 36px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.12);
+    border: 1px solid #e8f0e8;
+  }
+
+  .login-logo { text-align: center; margin-bottom: 28px; }
+
+  .login-logo .brand-icon {
+    width: 52px; height: 52px;
+    background: var(--verde);
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 12px;
+  }
+
+  .login-logo .brand-icon svg { width: 28px; height: 28px; fill: white; }
+
+  .login-logo h1 {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 18px; font-weight: 800;
+    color: var(--gris-oscuro);
+  }
+
+  .login-logo p { font-size: 12px; color: var(--gris-medio); margin-top: 4px; }
+
+  .form-row { margin-bottom: 16px; }
+
+  .form-row label {
+    display: block;
+    font-size: 12px; font-weight: 600;
+    color: var(--gris-oscuro);
+    margin-bottom: 5px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+  }
+
+  .form-row input {
+    width: 100%;
+    padding: 11px 14px;
+    border: 1.5px solid #d1dbd1;
+    border-radius: 8px;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    color: var(--gris-oscuro);
+    background: #f9fbf9;
+    transition: border 0.18s;
+    outline: none;
+  }
+
+  .form-row input:focus {
+    border-color: var(--verde-claro);
+    background: white;
+  }
+
+  .btn-primary {
+    width: 100%;
+    padding: 12px;
+    background: var(--verde);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 14px; font-weight: 700;
+    cursor: pointer;
+    letter-spacing: 0.5px;
+    transition: background 0.18s;
+    margin-top: 4px;
+  }
+
+  .btn-primary:hover { background: var(--verde-medio); }
+  .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+
+  .login-links {
+    text-align: center;
+    margin-top: 18px;
+    font-size: 13px;
+  }
+
+  .login-links a {
+    color: var(--verde);
+    text-decoration: none;
+    font-weight: 600;
+  }
+
+  .login-links a:hover { text-decoration: underline; }
+
+  .login-links .separator { color: var(--gris-medio); margin: 0 8px; }
+
+  .mensaje {
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    margin-bottom: 16px;
+    display: none;
+  }
+
+  .mensaje.error { display: block; background: var(--rojo-claro); color: var(--rojo); border: 1px solid #ef9a9a; }
+  .mensaje.success { display: block; background: var(--verde-suave); color: var(--verde); border: 1px solid #a5d6a7; }
+
+  .topbar {
+    position: fixed; top: 0; left: 0; right: 0;
+    background: var(--gris-oscuro); color: var(--blanco);
+    text-align: center; font-size: 12px; padding: 6px 20px;
+    letter-spacing: 0.3px;
+    z-index: 100;
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">Santa Cruz Segura Predictiva: plataforma web con IA para la anticipación colaborativa del delito en barrios</div>
+
+<div class="login-container">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="brand-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 2L3 7v5c0 5.25 3.75 10.15 9 11.35C17.25 22.15 21 17.25 21 12V7L12 2z"/></svg>
+      </div>
+      <h1>Santa Cruz Segura Predictiva</h1>
+      <p>Inicia sesión para continuar</p>
+    </div>
+
+    <div id="mensaje" class="mensaje"></div>
+
+    <div class="form-row">
+      <label>CORREO ELECTRÓNICO</label>
+      <input type="email" id="correo" placeholder="ejemplo@correo.com" autocomplete="email">
+    </div>
+
+    <div class="form-row">
+      <label>CONTRASEÑA</label>
+      <input type="password" id="contrasena" placeholder="Ingresa tu contraseña" autocomplete="current-password">
+    </div>
+
+    <button class="btn-primary" id="btnLogin" onclick="iniciarSesion()">
+      INICIAR SESIÓN
+    </button>
+
+    <div class="login-links">
+      <a href="forgot-password.html">¿Olvidaste tu contraseña?</a>
+      <span class="separator">·</span>
+      <a href="register.html">Crear cuenta</a>
+    </div>
+  </div>
+</div>
+
+<script>
+  const SUPABASE_URL = 'https://pbcukzkywhmbdcgeydjy.supabase.co'
+  const SUPABASE_KEY = 'sb_publishable_9TZeEa2AwMtyJXUGZb7v5A_v6A_Tmlv'
+
+  // ✅ CORRECTO: extraer createClient del objeto global 'supabase' del CDN
+  const { createClient } = supabase
+  const supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY)
+
+  async function iniciarSesion() {
+    const correo = document.getElementById('correo').value.trim()
+    const contrasena = document.getElementById('contrasena').value
+    const mensaje = document.getElementById('mensaje')
+    const btn = document.getElementById('btnLogin')
+
+    mensaje.className = 'mensaje'
+    mensaje.style.display = 'none'
+
+    if (!correo || !contrasena) {
+      mensaje.className = 'mensaje error'
+      mensaje.textContent = 'Por favor ingresa correo y contraseña'
+      return
+    }
+
+    btn.disabled = true
+    btn.textContent = 'INICIANDO SESIÓN...'
+
+    let data, error
+    try {
+      const result = await Promise.race([
+        supabaseClient.auth.signInWithPassword({ email: correo, password: contrasena }),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 15000))
+      ])
+      data = result.data
+      error = result.error
+    } catch (e) {
+      if (e.message === 'timeout' || e.name === 'AbortError') {
+        mensaje.className = 'mensaje error'
+        mensaje.textContent = 'La conexión está tardando demasiado. Verifica tu conexión a internet.'
+        btn.disabled = false
+        btn.textContent = 'INICIAR SESIÓN'
+        return
+      }
+      error = e
+    }
+
+    if (error) {
+      mensaje.className = 'mensaje error'
+      if (error.message.includes('Invalid login')) {
+        mensaje.textContent = 'Correo o contraseña incorrectos'
+      } else if (error.message.includes('Email not confirmed')) {
+        mensaje.textContent = 'Por favor verifica tu correo antes de iniciar sesión. Revisa tu bandeja de entrada o spam.'
+      } else if (error.message.includes('rate limit')) {
+        mensaje.textContent = 'Demasiados intentos. Espera unos minutos e intenta de nuevo.'
+      } else {
+        mensaje.textContent = error.message
+      }
+      btn.disabled = false
+      btn.textContent = 'INICIAR SESIÓN'
+      return
+    }
+
+    mensaje.className = 'mensaje success'
+    mensaje.textContent = 'Inicio de sesión exitoso. Redirigiendo...'
+
+    let perfilData = null
+    try {
+      const res = await fetch('/api/auth/me', {
+        headers: { 'Authorization': `Bearer ${data.session.access_token}` }
+      })
+      if (res.ok) {
+        perfilData = await res.json()
+        localStorage.setItem('sb-usuario', JSON.stringify(perfilData))
+      }
+    } catch (e) { console.error(e) }
+
+    const redirectMap = { 1:'usuarios.html', 2:'index.html', 3:'patrullajes.html', 4:'analisis.html' }
+    const rolId = perfilData?.perfil?.rol?.id_rol || 2
+    window.location.href = redirectMap[rolId] || 'index.html'
+  }
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') iniciarSesion()
+  })
+
+  // Redirigir si ya hay sesión activa
+  supabaseClient.auth.getSession().then(({ data: { session } }) => {
+    if (session) window.location.href = 'index.html'
+  })
+</script>
+</body>
+</html>

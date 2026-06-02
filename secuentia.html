@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secuencia de Interacción por Rol - Santa Cruz Segura Predictiva</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .lifeline { position: relative; }
+        .lifeline::before {
+            content: ''; position: absolute; top: 0; bottom: 0; left: 50%;
+            border-left: 2px dashed #cbd5e1; z-index: 0;
+        }
+        .activation-bar {
+            width: 12px; background-color: #94a3b8; border: 1px solid #64748b;
+            position: relative; z-index: 10; margin: 0 auto;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans p-4 md:p-8">
+
+    <div class="max-w-6xl mx-auto bg-white p-6 rounded-xl shadow-lg border border-slate-200">
+        
+        <div class="flex flex-col md:flex-row justify-between items-center border-b-2 border-slate-200 pb-4 mb-6 gap-4">
+            <div class="flex items-center gap-3">
+                <div class="bg-emerald-600 text-white p-2 rounded-lg text-2xl">
+                    <i class="fa-solid fa-shield-halved"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold text-emerald-800">Santa Cruz Segura Predictiva</h1>
+                    <p class="text-xs text-slate-500">Anticipación colaborativa del delito en barrios</p>
+                </div>
+            </div>
+            <div class="text-center md:text-right">
+                <span class="bg-slate-100 text-slate-700 text-xs px-3 py-1 rounded-full font-semibold uppercase tracking-wider">Documentación Técnica</span>
+                <h2 class="text-lg font-bold text-slate-700 mt-1">DIAGRAMA DE SECUENCIA POR ROLES</h2>
+            </div>
+        </div>
+
+        <div class="mb-8 border border-sky-200 rounded-lg overflow-hidden shadow-sm">
+            <div class="bg-sky-600 text-white px-4 py-2 flex items-center gap-2 font-semibold">
+                <i class="fa-solid fa-lock"></i> MÓDULO: Autenticación (Login / Olvidó Contraseña)
+            </div>
+            <div class="p-4 bg-sky-50/50 space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 text-center font-medium text-xs text-slate-600 mb-2">
+                    <div class="p-2 bg-white rounded shadow-sm border border-slate-200"><i class="fa-solid fa-user"></i> Usuario (Cualquier Rol)</div>
+                    <div class="p-2 bg-amber-100 text-amber-800 rounded shadow-sm border border-amber-200"><i class="fa-solid fa-window-restore"></i> Vista / Frontend (`login.html`)</div>
+                    <div class="p-2 bg-purple-100 text-purple-800 rounded shadow-sm border border-purple-200"><i class="fa-solid fa-gear"></i> Controlador (`authController.js`)</div>
+                    <div class="p-2 bg-emerald-100 text-emerald-800 rounded shadow-sm border border-emerald-200"><i class="fa-solid fa-database"></i> Base de Datos (Supabase)</div>
+                </div>
+                
+                <div class="bg-white p-4 rounded border border-slate-200 text-sm space-y-2">
+                    <div class="flex items-start gap-2"><span class="font-mono text-sky-600 font-bold">1.1</span> <p>El usuario ingresa credenciales en <code>login.html</code> o solicita recuperación en <code>forgot-password.html</code>.</p></div>
+                    <div class="flex items-start gap-2"><span class="font-mono text-sky-600 font-bold">1.2</span> <p>El formulario envía los datos via POST a <code>authController.js</code>.</p></div>
+                    <div class="flex items-start gap-2"><span class="font-mono text-sky-600 font-bold">1.3</span> <p>El controlador consulta la tabla <strong>USUARIO</strong>, verifica <code>contrasena_hash</code> y extrae el <code>id_rol</code>.</p></div>
+                    <div class="flex items-start gap-2"><span class="font-mono text-sky-600 font-bold">1.4</span> <p>El servidor responde redireccionando al usuario a su respectivo Dashboard según su nivel de acceso.</p></div>
+                </div>
+            </div>
+        </div>
+
+        <h3 class="text-base font-bold text-slate-700 uppercase tracking-wide mb-4 flex items-center gap-2">
+            <i class="fa-solid fa-users-gear"></i> Flujos y Limitaciones de Casos de Uso por Rol
+        </h3>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            
+            <div class="border border-emerald-200 rounded-lg overflow-hidden shadow-sm">
+                <div class="bg-emerald-700 text-white px-4 py-2 flex items-center justify-between font-semibold">
+                    <span class="flex items-center gap-2"><i class="fa-solid fa-user-shield"></i> ID [1]: Administrador</span>
+                    <span class="text-xs bg-emerald-800 px-2 py-0.5 rounded text-emerald-200">Acceso Total</span>
+                </div>
+                <div class="p-4 space-y-3 bg-emerald-50/30 text-sm">
+                    <p class="text-xs text-slate-500 font-medium">Vistas asignadas: <code>usuarios.html</code>, <code>juntas.html</code>, <code>index.html</code></p>
+                    <div class="border-l-4 border-emerald-600 pl-3 py-1 bg-white rounded-r border border-slate-200">
+                        <span class="font-semibold block text-emerald-800">Acciones Permitidas (Secuencia):</span>
+                        <ul class="list-disc list-inside space-y-1 text-xs mt-1 text-slate-700">
+                            <li>Gestionar usuarios globales y asignar/modificar el <code>id_rol</code>.</li>
+                            <li>Crear y editar Juntas Vecinales en la tabla <strong>JUNTA_VECINAL</strong>.</li>
+                            <li>Auditar el funcionamiento general del sistema.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="border border-blue-200 rounded-lg overflow-hidden shadow-sm">
+                <div class="bg-blue-600 text-white px-4 py-2 flex items-center justify-between font-semibold">
+                    <span class="flex items-center gap-2"><i class="fa-solid fa-house-user"></i> ID [2]: Vecino</span>
+                    <span class="text-xs bg-blue-700 px-2 py-0.5 rounded text-blue-200">Limitado a Barrio</span>
+                </div>
+                <div class="p-4 space-y-3 bg-blue-50/30 text-sm">
+                    <p class="text-xs text-slate-500 font-medium">Vistas asignadas: <code>juntas.html</code>, <code>reportes.html</code></p>
+                    <div class="border-l-4 border-blue-500 pl-3 py-1 bg-white rounded-r border border-slate-200">
+                        <span class="font-semibold block text-blue-800">Acciones Permitidas (Secuencia):</span>
+                        <ul class="list-disc list-inside space-y-1 text-xs mt-1 text-slate-700">
+                            <li>Visualizar información de su propia junta vecinal asociada (<code>id_junta</code>).</li>
+                            <li>Crear nuevos reportes ciudadanos (Tabla <strong>REPORTE</strong>).</li>
+                            <li>Recibir alertas de seguridad generadas en su zona geográfica mediante <code>notificaciones.html</code>.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="border border-red-200 rounded-lg overflow-hidden shadow-sm">
+                <div class="bg-red-600 text-white px-4 py-2 flex items-center justify-between font-semibold">
+                    <span class="flex items-center gap-2"><i class="fa-solid fa-user-tie"></i> ID [3]: Policía</span>
+                    <span class="text-xs bg-red-700 px-2 py-0.5 rounded text-red-200">Operativo / Respuesta</span>
+                </div>
+                <div class="p-4 space-y-3 bg-red-50/30 text-sm">
+                    <p class="text-xs text-slate-500 font-medium">Vistas asignadas: <code>incidentes.html</code>, <code>alertas.html</code>, <code>patrullajes.html</code>, <code>analis.html</code></p>
+                    <div class="border-l-4 border-red-500 pl-3 py-1 bg-white rounded-r border border-slate-200">
+                        <span class="font-semibold block text-red-800">Acciones Permitidas (Secuencia):</span>
+                        <ul class="list-disc list-inside space-y-1 text-xs mt-1 text-slate-700">
+                            <li>Revisar incidentes reportados y registrar la validación en <strong>VALIDACION_INCIDENTE</strong>.</li>
+                            <li>Emitir alertas comunitarias inmediatas de alto riesgo en la tabla <strong>ALERTA</strong>.</li>
+                            <li>Visualizar mapas críticos y mapas de calor (<code>mapaController.js</code>).</li>
+                            <li>Registrar bitácoras de rutas de vigilancia en la tabla <strong>PATRULLAJE</strong>.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="border border-amber-200 rounded-lg overflow-hidden shadow-sm">
+                <div class="bg-amber-600 text-white px-4 py-2 flex items-center justify-between font-semibold">
+                    <span class="flex items-center gap-2"><i class="fa-solid fa-user-check"></i> ID [4]: Moderador</span>
+                    <span class="text-xs bg-amber-700 px-2 py-0.5 rounded text-amber-200">Filtro de Contenido</span>
+                </div>
+                <div class="p-4 space-y-3 bg-amber-50/30 text-sm">
+                    <p class="text-xs text-slate-500 font-medium">Vistas asignadas: <code>reportes.html</code>, <code>configuracion.html</code></p>
+                    <div class="border-l-4 border-amber-500 pl-3 py-1 bg-white rounded-r border border-slate-200">
+                        <span class="font-semibold block text-amber-800">Acciones Permitidas (Secuencia):</span>
+                        <ul class="list-disc list-inside space-y-1 text-xs mt-1 text-slate-700">
+                            <li>Evaluar la veracidad de los reportes enviados por los vecinos para evitar falsas alarmas.</li>
+                            <li>Aprobar o rechazar el reporte modificando el campo <code>estado</code> en la tabla <strong>REPORTE</strong>.</li>
+                            <li>Escalar reportes aprobados transformándolos formalmente en filas de la tabla <strong>INCIDENTE</strong>.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="mt-8 bg-slate-900 text-slate-400 p-4 rounded-lg text-xs space-y-2">
+            <p class="font-semibold text-slate-200 text-sm"><i class="fa-solid fa-circle-info"></i> Trazabilidad del Sistema:</p>
+            <p>Este flujo HTML vincula de manera lógica la estructura del backend de NodeJS expresada en tus controladores (<code>authController.js</code>, <code>incidentesController.js</code>, <code>juntasController.js</code>) con los estados de persistencia de datos relacionales en tu base de datos de Seguridad Ciudadana.</p>
+        </div>
+
+    </div>
+
+</body>
+</html>

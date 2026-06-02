@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Santa Cruz Segura Predictiva - Registro</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root {
+    --verde: #1a6b2f;
+    --verde-medio: #2d8a47;
+    --verde-claro: #4caf50;
+    --verde-suave: #e8f5e9;
+    --naranja: #f5a623;
+    --rojo: #e53935;
+    --rojo-claro: #ffebee;
+    --gris-oscuro: #1c2b1e;
+    --gris: #4a5568;
+    --gris-medio: #718096;
+    --gris-claro: #f4f6f4;
+    --blanco: #ffffff;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--gris-claro);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding-top: 32px;
+    padding-bottom: 20px;
+  }
+
+  .register-container { width: 100%; max-width: 520px; padding: 20px; }
+
+  .register-card {
+    background: var(--blanco);
+    border-radius: 16px;
+    padding: 36px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.12);
+    border: 1px solid #e8f0e8;
+  }
+
+  .register-logo { text-align: center; margin-bottom: 24px; }
+
+  .register-logo .brand-icon {
+    width: 48px; height: 48px;
+    background: var(--verde);
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 10px;
+  }
+
+  .register-logo .brand-icon svg { width: 24px; height: 24px; fill: white; }
+
+  .register-logo h1 {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 16px; font-weight: 800;
+    color: var(--gris-oscuro);
+  }
+
+  .register-logo p { font-size: 12px; color: var(--gris-medio); margin-top: 3px; }
+
+  .form-row { margin-bottom: 14px; }
+  .form-row label {
+    display: block;
+    font-size: 11px; font-weight: 600;
+    color: var(--gris-oscuro);
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+  }
+
+  .form-row input, .form-row select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1.5px solid #d1dbd1;
+    border-radius: 8px;
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    color: var(--gris-oscuro);
+    background: #f9fbf9;
+    transition: border 0.18s;
+    outline: none;
+  }
+
+  .form-row input:focus, .form-row select:focus {
+    border-color: var(--verde-claro);
+    background: white;
+  }
+
+  .form-row input:disabled, .form-row select:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  .form-row-half {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .btn-primary {
+    width: 100%;
+    padding: 12px;
+    background: var(--verde);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 13px; font-weight: 700;
+    cursor: pointer;
+    letter-spacing: 0.5px;
+    transition: background 0.18s;
+    margin-top: 4px;
+  }
+
+  .btn-primary:hover { background: var(--verde-medio); }
+  .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+
+  .login-links { text-align: center; margin-top: 16px; font-size: 13px; }
+
+  .login-links a {
+    color: var(--verde);
+    text-decoration: none;
+    font-weight: 600;
+  }
+
+  .login-links a:hover { text-decoration: underline; }
+
+  .mensaje {
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    margin-bottom: 14px;
+    display: none;
+  }
+
+  .mensaje.error { display: block; background: var(--rojo-claro); color: var(--rojo); border: 1px solid #ef9a9a; }
+  .mensaje.success { display: block; background: var(--verde-suave); color: var(--verde); border: 1px solid #a5d6a7; }
+
+  .topbar {
+    position: fixed; top: 0; left: 0; right: 0;
+    background: var(--gris-oscuro); color: var(--blanco);
+    text-align: center; font-size: 12px; padding: 6px 20px;
+    letter-spacing: 0.3px;
+    z-index: 100;
+  }
+
+  .rol-info {
+    background: var(--verde-suave);
+    border: 1px solid #a5d6a7;
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 12px;
+    color: var(--verde);
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  @media (max-width: 500px) {
+    .form-row-half { grid-template-columns: 1fr; }
+    .register-card { padding: 24px 20px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">Santa Cruz Segura Predictiva: plataforma web con IA para la anticipación colaborativa del delito en barrios</div>
+
+<div class="register-container">
+  <div class="register-card">
+    <div class="register-logo">
+      <div class="brand-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 2L3 7v5c0 5.25 3.75 10.15 9 11.35C17.25 22.15 21 17.25 21 12V7L12 2z"/></svg>
+      </div>
+      <h1>Crear cuenta</h1>
+      <p>Regístrate para formar parte de la comunidad</p>
+    </div>
+
+    <div id="mensaje" class="mensaje"></div>
+
+    <div class="rol-info">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+      Tu rol será <strong>Vecino</strong> por defecto
+    </div>
+
+    <div class="form-row-half">
+      <div class="form-row">
+        <label>NOMBRES <span style="color:var(--rojo)">*</span></label>
+        <input type="text" id="nombres" placeholder="Ej: Juan Carlos">
+      </div>
+      <div class="form-row">
+        <label>APELLIDOS <span style="color:var(--rojo)">*</span></label>
+        <input type="text" id="apellidos" placeholder="Ej: Pérez García">
+      </div>
+    </div>
+
+    <div class="form-row">
+      <label>CORREO ELECTRÓNICO <span style="color:var(--rojo)">*</span></label>
+      <input type="email" id="correo" placeholder="ejemplo@correo.com" autocomplete="email">
+    </div>
+
+    <div class="form-row-half">
+      <div class="form-row">
+        <label>TELÉFONO</label>
+        <input type="tel" id="telefono" placeholder="+591 7XXXXXXX">
+      </div>
+      <div class="form-row">
+        <label>CONTRASEÑA <span style="color:var(--rojo)">*</span></label>
+        <input type="password" id="contrasena" placeholder="Mín. 6 caracteres" autocomplete="new-password">
+      </div>
+    </div>
+
+    <div class="form-row">
+      <label>JUNTA VECINAL <span style="color:var(--rojo)">*</span></label>
+      <select id="junta">
+        <option value="">Cargando juntas vecinales...</option>
+      </select>
+    </div>
+
+    <button class="btn-primary" id="btnRegister" onclick="registrar()">
+      CREAR CUENTA
+    </button>
+
+    <div class="login-links">
+      ¿Ya tienes cuenta? <a href="login.html">Inicia sesión</a>
+    </div>
+  </div>
+</div>
+
+<script>
+  const SUPABASE_URL = 'https://pbcukzkywhmbdcgeydjy.supabase.co'
+  const SUPABASE_KEY = 'sb_publishable_9TZeEa2AwMtyJXUGZb7v5A_v6A_Tmlv'
+
+  const { createClient } = supabase
+  const supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY)
+
+  async function cargarJuntas() {
+    const select = document.getElementById('junta')
+    try {
+      const res = await fetch('/api/juntas')
+      if (!res.ok) throw new Error('Error al cargar juntas')
+      const juntas = await res.json()
+      if (juntas.length > 0) {
+        select.innerHTML = '<option value="">Seleccionar junta vecinal...</option>' +
+          juntas.map(j => `<option value="${j.id_junta}">${j.nombre}</option>`).join('')
+      } else {
+        select.innerHTML = '<option value="">No hay juntas disponibles</option>'
+      }
+    } catch (e) {
+      console.error('Error cargando juntas:', e)
+      select.innerHTML = '<option value="">Error al cargar - selecciona después</option>'
+    }
+  }
+
+  cargarJuntas()
+
+  async function registrar() {
+    const nombres = document.getElementById('nombres').value.trim()
+    const apellidos = document.getElementById('apellidos').value.trim()
+    const correo = document.getElementById('correo').value.trim()
+    const telefono = document.getElementById('telefono').value.trim()
+    const contrasena = document.getElementById('contrasena').value
+    const juntaId = document.getElementById('junta').value
+    const mensaje = document.getElementById('mensaje')
+    const btn = document.getElementById('btnRegister')
+
+    mensaje.className = 'mensaje'
+    mensaje.style.display = 'none'
+
+    if (!nombres || !apellidos || !correo || !contrasena) {
+      mensaje.className = 'mensaje error'
+      mensaje.textContent = 'Por favor completa todos los campos obligatorios'
+      btn.disabled = false
+      return
+    }
+
+    if (contrasena.length < 6) {
+      mensaje.className = 'mensaje error'
+      mensaje.textContent = 'La contraseña debe tener al menos 6 caracteres'
+      btn.disabled = false
+      return
+    }
+
+    btn.disabled = true
+    btn.textContent = 'CREANDO CUENTA...'
+
+    // Paso 1: Crear usuario en Supabase Auth (envía correo de verificación)
+    const { error: authError } = await supabaseClient.auth.signUp({
+      email: correo,
+      password: contrasena,
+      options: { data: { nombres, apellidos } }
+    })
+
+    if (authError) {
+      mensaje.className = 'mensaje error'
+      if (authError.message.includes('already')) {
+        mensaje.textContent = 'El correo ya está registrado. Inicia sesión o usa otro correo.'
+      } else if (authError.message.includes('rate limit')) {
+        mensaje.textContent = 'Demasiados intentos. Espera unos minutos e intenta de nuevo.'
+      } else {
+        mensaje.textContent = authError.message
+      }
+      btn.disabled = false
+      btn.textContent = 'CREAR CUENTA'
+      return
+    }
+
+    // Paso 2: Guardar datos en la BD
+    const payload = { nombres, apellidos, correo, telefono, contrasena, rol: 'Vecino' }
+    if (juntaId) payload.junta = parseInt(juntaId)
+
+    try {
+      const res = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+
+      const data = await res.json()
+
+      if (!res.ok) {
+        mensaje.className = 'mensaje error'
+        mensaje.textContent = data.error || 'Error al guardar los datos'
+        btn.disabled = false
+        btn.textContent = 'CREAR CUENTA'
+        return
+      }
+
+      mensaje.className = 'mensaje success'
+      mensaje.textContent = 'Registro exitoso. Revisa tu correo para verificar la cuenta antes de iniciar sesión.'
+      btn.textContent = '¡CUENTA CREADA!'
+
+      setTimeout(() => {
+        window.location.href = 'login.html'
+      }, 3000)
+
+    } catch (e) {
+      mensaje.className = 'mensaje success'
+      mensaje.textContent = 'Registro exitoso. Revisa tu correo para verificar la cuenta antes de iniciar sesión.'
+      btn.textContent = '¡CUENTA CREADA!'
+      setTimeout(() => {
+        window.location.href = 'login.html'
+      }, 3000)
+    }
+  }
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') registrar()
+  })
+</script>
+</body>
+</html>

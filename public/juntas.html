@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Santa Cruz Segura Predictiva - Juntas Vecinales</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="/js/supabase.js"></script>
+<style>
+  :root {
+    --verde: #1a6b2f;
+    --verde-medio: #2d8a47;
+    --verde-claro: #4caf50;
+    --verde-suave: #e8f5e9;
+    --naranja: #f5a623;
+    --rojo: #e53935;
+    --rojo-claro: #ffebee;
+    --gris-oscuro: #1c2b1e;
+    --gris: #4a5568;
+    --gris-medio: #718096;
+    --gris-claro: #f4f6f4;
+    --blanco: #ffffff;
+    --sombra: 0 2px 12px rgba(0,0,0,0.10);
+    --sombra-fuerte: 0 4px 24px rgba(0,0,0,0.15);
+    --text-primary: var(--gris-oscuro);
+    --bg-card: #ffffff;
+    --border-card: #e8f0e8;
+    --header-bg: #ffffff;
+    --header-border: #e2e8f0;
+    --sidebar-bg: #1c2b1e;
+    --sidebar-text: #ffffff;
+    --topbar-bg: #1c2b1e;
+    --topbar-text: #ffffff;
+    --input-bg: #ffffff;
+    --input-border: #d1dbd1;
+  }
+
+body.dark {
+    --verde: #4caf50;
+    --verde-medio: #66bb6a;
+    --verde-claro: #81c784;
+    --verde-suave: #1b3d1f;
+    --naranja: #ffb74d;
+    --rojo: #ef5350;
+    --rojo-claro: #3d1a1a;
+    --text-primary: #e8eaed;
+    --gris: #b0b3b8;
+    --gris-medio: #8a8d94;
+    --gris-claro: #1a1a2e;
+    --blanco: #c8cdd0;
+    --sombra: 0 2px 12px rgba(0,0,0,0.30);
+    --sombra-fuerte: 0 4px 24px rgba(0,0,0,0.40);
+    --bg-card: #1e2a3a;
+    --border-card: #2a3a4e;
+    --header-bg: #16213e;
+    --header-border: #2a3a4e;
+    --sidebar-bg: #0a0e1a;
+    --sidebar-text: #c8cdd0;
+    --topbar-bg: #0a0e1a;
+    --topbar-text: #c8cdd0;
+    --input-bg: #1a2535;
+    --input-border: #2a3a4e;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--gris-claro);
+    color: var(--text-primary);
+    min-height: 100vh;
+    transition: background 0.25s, color 0.25s;
+  }
+
+  .topbar {
+    background: var(--topbar-bg);
+    color: var(--topbar-text);
+    text-align: center;
+    font-size: 12px;
+    padding: 6px 20px;
+    letter-spacing: 0.3px;
+    transition: background 0.25s, color 0.25s;
+  }
+
+  .layout {
+    display: flex;
+    min-height: calc(100vh - 30px);
+  }
+
+  .sidebar {
+    width: 220px;
+    background: var(--sidebar-bg);
+    color: var(--sidebar-text);
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    flex-shrink: 0;
+    transition: background 0.25s, color 0.25s;
+  }
+
+  .sidebar-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 22px 20px 18px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+
+  .brand-icon {
+    width: 38px; height: 38px;
+    background: var(--verde);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  .brand-icon svg { width: 22px; height: 22px; fill: white; }
+
+  .brand-text { line-height: 1.2; }
+  .brand-text .t1 { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 13px; color: white; }
+  .brand-text .t2 { font-size: 10px; color: var(--verde-claro); font-weight: 500; }
+
+  .sidebar nav { padding: 12px 0; flex: 1; overflow-y: auto; }
+
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 20px;
+    font-size: 13px; font-weight: 500;
+    color: rgba(255,255,255,0.65);
+    cursor: pointer;
+    transition: all 0.18s;
+    border-left: 3px solid transparent;
+    text-decoration: none;
+  }
+  .nav-item:hover { color: white; background: rgba(255,255,255,0.06); }
+  .nav-item.active {
+    color: white;
+    border-left: 3px solid var(--verde-claro);
+    background: rgba(76,175,80,0.12);
+  }
+  .nav-item svg { width: 16px; height: 16px; flex-shrink: 0; }
+
+  .sidebar-footer {
+    padding: 16px 20px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    font-size: 11.5px;
+    color: rgba(255,255,255,0.45);
+  }
+
+  .main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .header {
+    background: var(--header-bg);
+    border-bottom: 1px solid var(--header-border);
+    padding: 14px 28px;
+    display: flex; align-items: center; justify-content: space-between;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+  }
+
+  .header-left h1 {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 18px; font-weight: 800;
+    color: var(--text-primary);
+  }
+  .header-left p { font-size: 12px; color: var(--gris-medio); margin-top: 1px; }
+
+  .header-right { display: flex; align-items: center; gap: 14px; }
+
+  .bell-btn {
+    width: 36px; height: 36px;
+    border: 1.5px solid var(--header-border);
+    border-radius: 8px;
+    background: var(--bg-card);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    position: relative;
+  }
+  .bell-btn svg { width: 18px; height: 18px; stroke: var(--gris); fill: none; }
+  .bell-dot {
+    width: 8px; height: 8px;
+    background: var(--rojo);
+    border-radius: 50%;
+    position: absolute; top: 5px; right: 5px;
+    border: 1.5px solid var(--bg-card);
+  }
+
+  .user-badge {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--verde-suave);
+    border: 1.5px solid var(--border-card);
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-size: 12px; font-weight: 600; color: var(--verde);
+  }
+  .user-avatar {
+    width: 26px; height: 26px;
+    background: var(--verde);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-size: 11px; font-weight: 700;
+  }
+
+  .content { padding: 24px 28px; flex: 1; overflow-y: auto; }
+
+  .section-title {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 14px; font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .junta-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .junta-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: var(--sombra);
+    border: 1px solid #e8f0e8;
+    transition: all 0.18s;
+  }
+  .junta-card:hover { box-shadow: var(--sombra-fuerte); }
+
+  .junta-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    margin-bottom: 12px;
+  }
+
+  .junta-avatar {
+    width: 44px; height: 44px;
+    background: var(--verde);
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .junta-avatar svg { width: 24px; height: 24px; fill: white; }
+
+  .junta-nombre { font-weight: 700; font-size: 15px; color: var(--text-primary); }
+  .junta-barrio { font-size: 12px; color: var(--gris-medio); margin-top: 1px; }
+
+  .junta-stats {
+    display: flex; gap: 16px; margin-top: 10px;
+  }
+  .junta-stat {
+    display: flex; align-items: center; gap: 5px;
+    font-size: 11px; color: var(--gris);
+  }
+  .junta-stat strong { color: var(--text-primary); }
+
+  .junta-desc {
+    font-size: 12px; color: var(--gris);
+    margin-top: 8px;
+    line-height: 1.4;
+  }
+
+  .riesgo-badge {
+    font-size: 10px; font-weight: 700;
+    padding: 2px 10px;
+    border-radius: 12px;
+    text-transform: uppercase;
+  }
+  .riesgo-badge.Alto { background: var(--rojo-claro); color: var(--rojo); }
+  .riesgo-badge.Medio { background: #fff3e0; color: #e65100; }
+  .riesgo-badge.Bajo { background: var(--verde-suave); color: var(--verde); }
+
+  .form-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: var(--sombra);
+    border: 1px solid #e8f0e8;
+    margin-bottom: 24px;
+  }
+
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+
+  .form-row { margin-bottom: 4px; }
+  .form-row label {
+    display: block;
+    font-size: 12px; font-weight: 600; color: var(--text-primary);
+    margin-bottom: 4px;
+    text-transform: uppercase; letter-spacing: 0.4px;
+  }
+  .form-row input, .form-row select, .form-row textarea {
+    width: 100%;
+    padding: 9px 12px;
+    border: 1.5px solid #d1dbd1;
+    border-radius: 7px;
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    color: var(--text-primary);
+    background: #f9fbf9;
+    transition: border 0.18s;
+    outline: none;
+  }
+  .form-row input:focus, .form-row select:focus, .form-row textarea:focus {
+    border-color: var(--verde-claro);
+    background: white;
+  }
+
+  .btn-primary {
+    padding: 10px 24px;
+    background: var(--verde);
+    color: white;
+    border: none;
+    border-radius: 7px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 12px; font-weight: 700;
+    cursor: pointer;
+    letter-spacing: 0.5px;
+    transition: background 0.18s;
+  }
+  .btn-primary:hover { background: var(--verde-medio); }
+  .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+
+  .btn-secondary {
+    padding: 10px 24px;
+    background: white;
+    color: var(--gris);
+    border: 1.5px solid #d1dbd1;
+    border-radius: 7px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 12px; font-weight: 700;
+    cursor: pointer;
+    transition: all 0.18s;
+  }
+  .btn-secondary:hover { border-color: var(--verde-claro); color: var(--verde); }
+
+  .mensaje {
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    margin-bottom: 16px;
+    display: none;
+  }
+  .mensaje.success { display: block; background: var(--verde-suave); color: var(--verde); border: 1px solid #a5d6a7; }
+  .mensaje.error { display: block; background: var(--rojo-claro); color: var(--rojo); border: 1px solid #ef9a9a; }
+
+  .tab-bar {
+    display: flex; gap: 0; margin-bottom: 18px;
+    border-bottom: 2px solid #e2e8f0;
+  }
+  .tab {
+    padding: 10px 20px;
+    font-size: 12px; font-weight: 600;
+    color: var(--gris-medio);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+    transition: all 0.15s;
+  }
+  .tab:hover { color: var(--text-primary); }
+  .tab.active { color: var(--verde); border-bottom-color: var(--verde); }
+
+  @media (max-width: 700px) {
+    .sidebar { display: none; }
+    .junta-grid { grid-template-columns: 1fr; }
+    .form-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<script>try{document.body.classList.toggle('dark',localStorage.getItem('scsp_theme')==='dark')}catch(e){}</script>
+
+<div class="topbar">
+  Santa Cruz Segura Predictiva: plataforma web con IA para la anticipación colaborativa del delito en barrios
+</div>
+
+<div class="layout">
+
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 2L3 7v5c0 5.25 3.75 10.15 9 11.35C17.25 22.15 21 17.25 21 12V7L12 2z"/></svg>
+      </div>
+      <div class="brand-text">
+        <div class="t1">Santa Cruz<br>Segura Predictiva</div>
+        <div class="t2">Plataforma IA</div>
+      </div>
+    </div>
+    <nav id="sidebarNav"></nav>
+    <div class="sidebar-footer">
+      <strong style="color:rgba(255,255,255,0.7)">Junta Vecinal</strong><br>San Pedro
+    </div>
+  </aside>
+
+  <main class="main">
+
+    <div class="header">
+      <div class="header-left">
+        <h1>Juntas Vecinales</h1>
+        <p>Organización y participación vecinal por barrio</p>
+      </div>
+      <div class="header-right">
+        <div class="bell-btn" onclick="location.href='analisis.html'" style="cursor:pointer;">
+          <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <span class="bell-dot" id="notifDot" style="display:none;"></span>
+        </div>
+        <div class="user-badge" id="userBadge">
+          <div class="user-avatar" style="background:var(--verde);">...</div>
+          <span>Cargando...</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <div class="tab-bar">
+        <div class="tab active" onclick="switchTab('ver')" id="tabVer">Ver juntas</div>
+        <div class="tab" onclick="switchTab('crear')" id="tabCrear">Nueva junta</div>
+      </div>
+
+      <div id="tabVerContent">
+        <div class="section-title">Juntas vecinales registradas</div>
+        <div class="junta-grid" id="juntasContainer">
+          <div style="color:var(--gris-medio);font-size:13px;padding:20px;">Cargando juntas vecinales...</div>
+        </div>
+      </div>
+
+      <div id="tabCrearContent" style="display:none;">
+        <div class="section-title">Registrar nueva junta vecinal</div>
+        <div id="mensaje" class="mensaje"></div>
+        <div class="form-card">
+          <div class="form-grid">
+            <div class="form-row" style="grid-column:1/-1;">
+              <label>NOMBRE DE LA JUNTA <span style="color:var(--rojo)">*</span></label>
+              <input type="text" id="juntaNombre" placeholder="Ej: Junta Vecinal San Pedro Norte">
+            </div>
+            <div class="form-row" style="grid-column:1/-1;">
+              <label>DESCRIPCIÓN</label>
+              <textarea id="juntaDesc" placeholder="Describe la junta vecinal..." style="min-height:80px;"></textarea>
+            </div>
+            <div class="form-row">
+              <label>BARRIO <span style="color:var(--rojo)">*</span></label>
+              <select id="juntaBarrio">
+                <option value="">Seleccionar barrio...</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <label>FECHA DE CREACIÓN</label>
+              <input type="date" id="juntaFecha">
+            </div>
+          </div>
+          <div style="display:flex;gap:10px;margin-top:16px;">
+            <button class="btn-primary" onclick="crearJunta()">Guardar junta</button>
+            <button class="btn-secondary" onclick="switchTab('ver')">Cancelar</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+</div>
+
+<script>
+  let barrios = []
+
+  async function cargarJuntas() {
+    try {
+      const res = await apiFetch('/api/juntas')
+      const juntas = await res.json()
+      const container = document.getElementById('juntasContainer')
+
+      if (!juntas || juntas.length === 0) {
+        container.innerHTML = '<div style="color:var(--gris-medio);font-size:13px;padding:20px;">No hay juntas vecinales registradas.</div>'
+        return
+      }
+
+      container.innerHTML = juntas.map(j => {
+        const riesgo = j.barrio?.nivel_riesgo || 'N/A'
+        const miembros = j.total_miembros || 0
+        const fecha = j.fecha_creacion ? new Date(j.fecha_creacion).toLocaleDateString('es-BO') : '—'
+        return `
+          <div class="junta-card">
+            <div class="junta-header">
+              <div class="junta-avatar">
+                <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              </div>
+              <div style="flex:1;">
+                <div class="junta-nombre">${j.nombre}</div>
+                <div class="junta-barrio">${j.barrio?.nombre || 'Sin barrio'} · ${fecha}</div>
+              </div>
+              <span class="riesgo-badge ${riesgo}">${riesgo}</span>
+            </div>
+            ${j.descripcion ? `<div class="junta-desc">${j.descripcion}</div>` : ''}
+            <div class="junta-stats">
+              <div class="junta-stat"><strong>${miembros}</strong> miembros</div>
+              <div class="junta-stat"><strong>${riesgo}</strong> riesgo del barrio</div>
+            </div>
+          </div>`
+      }).join('')
+    } catch (e) {
+      console.error('Error al cargar juntas:', e)
+      document.getElementById('juntasContainer').innerHTML = '<div style="color:var(--rojo);font-size:13px;padding:20px;">Error al cargar juntas vecinales.</div>'
+    }
+  }
+
+  async function cargarBarrios() {
+    try {
+      const res = await apiFetch('/api/juntas/barrios')
+      barrios = await res.json()
+      const sel = document.getElementById('juntaBarrio')
+      sel.innerHTML = '<option value="">Seleccionar barrio...</option>' +
+        barrios.map(b => `<option value="${b.id_barrio}">${b.nombre}</option>`).join('')
+    } catch (e) {
+      console.error('Error al cargar barrios:', e)
+    }
+  }
+
+  async function crearJunta() {
+    const nombre = document.getElementById('juntaNombre').value.trim()
+    const descripcion = document.getElementById('juntaDesc').value.trim()
+    const idBarrio = document.getElementById('juntaBarrio').value
+    const fecha = document.getElementById('juntaFecha').value
+    const mensaje = document.getElementById('mensaje')
+
+    mensaje.className = 'mensaje'
+    mensaje.style.display = 'none'
+
+    if (!nombre || !idBarrio) {
+      mensaje.className = 'mensaje error'
+      mensaje.textContent = 'Completa los campos obligatorios: nombre y barrio.'
+      return
+    }
+
+    try {
+      const res = await apiFetch('/api/juntas', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          nombre,
+          descripcion,
+          id_barrio: parseInt(idBarrio),
+          fecha_creacion: fecha || null
+        })
+      })
+
+      if (!res.ok) throw new Error('Error al crear junta')
+
+      mensaje.className = 'mensaje success'
+      mensaje.textContent = 'Junta vecinal creada correctamente.'
+      document.getElementById('juntaNombre').value = ''
+      document.getElementById('juntaDesc').value = ''
+      document.getElementById('juntaBarrio').value = ''
+      document.getElementById('juntaFecha').value = ''
+
+      cargarJuntas()
+      setTimeout(() => { if (confirm('¿Ver la lista de juntas?')) switchTab('ver') }, 800)
+    } catch (e) {
+      mensaje.className = 'mensaje error'
+      mensaje.textContent = 'Error al crear la junta. Intenta de nuevo.'
+    }
+  }
+
+  function switchTab(tab) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'))
+    document.getElementById('tabVerContent').style.display = tab === 'ver' ? 'block' : 'none'
+    document.getElementById('tabCrearContent').style.display = tab === 'crear' ? 'block' : 'none'
+    document.getElementById(tab === 'ver' ? 'tabVer' : 'tabCrear').classList.add('active')
+    if (tab === 'crear') cargarBarrios()
+  }
+
+  function ocultarCrearJuntaSiVecino() {
+    try {
+      const rolId = obtenerRolId()
+      if (rolId === 2) {
+        const tabCrear = document.getElementById('tabCrear')
+        if (tabCrear) tabCrear.style.display = 'none'
+      }
+    } catch(e) {}
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    cargarJuntas()
+    cargarBarrios()
+  })
+</script>
+<script src="js/auth.js"></script>
+<script>
+  verificarSesion().then(async function(session) {
+    if (session) {
+      verificarAcceso()
+      generarSidebar()
+      await new Promise(r => setTimeout(r, 300))
+      actualizarHeaderUsuario()
+      ocultarCrearJuntaSiVecino()
+    } else {
+      window.location.href = 'login.html'
+    }
+  })
+</script>
+</body>
+</html>
