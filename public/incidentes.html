@@ -810,46 +810,27 @@ body.dark {
     btn.disabled = true;
 
     try {
-      let evidenciaUrl = ''
+      const tipoBtn = document.querySelector('.tipo-btn.selected');
+      const formData = new FormData()
+      formData.append('tipo', tipoBtn ? tipoBtn.dataset.tipo : 'Robo')
+      formData.append('descripcion', document.getElementById('descripcion').value)
+      formData.append('fecha_hora', document.getElementById('fecha_hora').value)
+      formData.append('urgencia', document.getElementById('urgencia').value)
+      formData.append('calle', document.getElementById('calle').value)
+      formData.append('barrio', document.getElementById('barrio').value)
+      formData.append('zona', document.getElementById('zona').value)
+      formData.append('referencia', document.getElementById('referencia').value)
+      formData.append('latitud', document.getElementById('inc_latitud').value)
+      formData.append('longitud', document.getElementById('inc_longitud').value)
+
       const fileInput = document.getElementById('evidencia')
       if (fileInput.files && fileInput.files[0]) {
-        try {
-          const file = fileInput.files[0]
-          const ext = file.name.split('.').pop() || 'jpg'
-          const filePath = 'incidentes/' + Date.now() + '_' + Math.random().toString(36).slice(2) + '.' + ext
-          const { error: uploadError } = await _supabaseClient.storage
-            .from('evidencias')
-            .upload(filePath, file)
-          if (!uploadError) {
-            const { data: urlData } = _supabaseClient.storage
-              .from('evidencias')
-              .getPublicUrl(filePath)
-            evidenciaUrl = urlData.publicUrl
-          }
-        } catch (e) {
-          console.warn('No se pudo subir la imagen, se envía sin evidencia:', e)
-        }
+        formData.append('evidencia', fileInput.files[0])
       }
-
-      const tipoBtn = document.querySelector('.tipo-btn.selected');
-      const payload = {
-        tipo: tipoBtn ? tipoBtn.dataset.tipo : 'Robo',
-        descripcion: document.getElementById('descripcion').value,
-        fecha_hora: document.getElementById('fecha_hora').value,
-        urgencia: document.getElementById('urgencia').value,
-        calle: document.getElementById('calle').value,
-        barrio: document.getElementById('barrio').value,
-        zona: document.getElementById('zona').value,
-        referencia: document.getElementById('referencia').value,
-        evidencia: evidenciaUrl,
-        latitud: document.getElementById('inc_latitud').value,
-        longitud: document.getElementById('inc_longitud').value
-      };
 
       const res = await apiFetch('/api/incidentes', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+        body: formData
       });
       if (!res.ok) throw new Error('Error al enviar');
       btn.innerHTML = '✅ ¡Incidente reportado exitosamente!';

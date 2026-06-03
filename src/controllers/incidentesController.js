@@ -1,4 +1,4 @@
-import { supabase } from '../config/supabase.js'
+import { supabase, supabaseAdmin } from '../config/supabase.js'
 
 export async function crearIncidente(req, res) {
     try {
@@ -6,7 +6,28 @@ export async function crearIncidente(req, res) {
             return res.status(403).json({ error: 'No tienes permiso para crear incidentes' })
         }
 
-        const { tipo, descripcion, fecha_hora, urgencia, calle, barrio, zona, referencia, evidencia, latitud, longitud } = req.body
+        const { tipo, descripcion, fecha_hora, urgencia, calle, barrio, zona, referencia, latitud, longitud } = req.body
+
+        let evidenciaUrl = null
+        if (req.file) {
+            try {
+                const ext = req.file.originalname.split('.').pop() || 'jpg'
+                const filePath = 'incidentes/' + Date.now() + '_' + Math.random().toString(36).slice(2) + '.' + ext
+                const { error: uploadError } = await supabaseAdmin.storage
+                    .from('evidencias')
+                    .upload(filePath, req.file.buffer, { contentType: req.file.mimetype })
+                if (!uploadError) {
+                    const { data: urlData } = supabaseAdmin.storage
+                        .from('evidencias')
+                        .getPublicUrl(filePath)
+                    evidenciaUrl = urlData.publicUrl
+                } else {
+                    console.error('Error al subir imagen a Supabase Storage:', uploadError)
+                }
+            } catch (e) {
+                console.error('Error al procesar imagen:', e)
+            }
+        }
 
         if (!tipo || !descripcion || !fecha_hora || !calle) {
             return res.status(400).json({ error: 'Faltan campos obligatorios' })
@@ -92,7 +113,7 @@ export async function crearIncidente(req, res) {
                 descripcion,
                 fecha_hora,
                 estado: 'Pendiente',
-                evidencia_url: evidencia || null,
+                evidencia_url: evidenciaUrl,
                 id_tipo_incidente,
                 id_usuario: req.user.id_usuario,
                 id_ubicacion
