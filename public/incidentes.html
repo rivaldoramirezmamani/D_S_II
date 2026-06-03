@@ -832,7 +832,10 @@ body.dark {
         method: 'POST',
         body: formData
       });
-      if (!res.ok) throw new Error('Error al enviar');
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || 'Error del servidor');
+      }
       btn.innerHTML = '✅ ¡Incidente reportado exitosamente!';
       btn.style.background = '#1a6b2f';
       btn.style.opacity = '1';
