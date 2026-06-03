@@ -196,3 +196,26 @@ function actualizarHeaderUsuario() {
         else document.body.classList.remove('dark')
     } catch (e) {}
 })()
+
+// Sidebar toggle for mobile
+;(function initSidebarToggle(){
+    var toggle = document.getElementById('menuToggle')
+    var overlay = document.getElementById('sidebarOverlay')
+    var sidebar = document.querySelector('.sidebar')
+    if (!toggle || !overlay || !sidebar) return
+    toggle.addEventListener('click', function(e) {
+        e.stopPropagation()
+        sidebar.classList.toggle('open')
+        overlay.classList.toggle('active')
+    })
+    overlay.addEventListener('click', function() {
+        sidebar.classList.remove('open')
+        overlay.classList.remove('active')
+    })
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && sidebar.classList.contains('open')) {
+            sidebar.classList.remove('open')
+            overlay.classList.remove('active')
+        }
+    })
+})()
